@@ -8,13 +8,17 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 
+
+
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', async (req, res) => {
+app.get('/',async (req, res) => {
   // 测试数据库连接
-  const usersCount = await prisma.user.count().catch(() => 0);
-  res.json({ status: 'ok', dbConnected: true, usersCount });
+  const users = await prisma.user.findFirst();
+  // res.json({ status: 'ok', dbConnected: true, usersCount });
+  // res.json(users) 
+  res.send(users)
 });
 
 app.listen(PORT, () => {

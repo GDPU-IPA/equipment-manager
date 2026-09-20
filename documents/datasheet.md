@@ -39,7 +39,7 @@
 
 | 字段名           | 数据类型         | 约束/键             | 默认值               | 说明                          |
 |:------------- |:------------ |:---------------- |:----------------- |:--------------------------- |
-| **id**        | BIGINT       | PK, Auto Inc     | -                 | 用户唯一标识                      |
+| **id**        | INT       | PK, Auto Inc     | -                 | 用户唯一标识                      |
 | username      | VARCHAR(50)  | NOT NULL, Unique | -                 | 学号                          |
 | role          | VARCHAR(50)  | NOT NULL         | 'user'            | 角色（student, teacher, admin） |
 | password_hash | VARCHAR(255) | NOT NULL         | -                 | 密码哈希值                       |
@@ -54,9 +54,9 @@
 
 | 字段名             | 数据类型         | 约束/键                                    | 默认值               | 说明                  |
 |:--------------- |:------------ |:--------------------------------------- |:----------------- |:------------------- |
-| **id**          | BIGINT       | PK, Auto Inc                            | -                 | 物料唯一标识              |
+| **id**          | INT       | PK, Auto Inc                            | -                 | 物料唯一标识              |
 | name            | VARCHAR(100) | NOT NULL                                | -                 | 物料名称                |
-| category_id     | BIGINT       | FK (fk_item_category_id)NOT NULL, Index | NULL              | 关联 item_category.id |
+| category_id     | INT       | FK (fk_item_category_id)NOT NULL, Index | NULL              | 关联 item_category.id |
 | description     | TEXT         | NULL                                    | NULL              | 规格型号/详细描述           |
 | total_stock     | INT          | NOT NULL                                | 0                 | 总库存数量（物理总数）         |
 | available_stock | INT          | NOT NULL                                | 0                 | 当前可用库存              |
@@ -68,8 +68,8 @@
 
 | 字段名            | 数据类型         | 约束/键            | 默认值               | 说明                               |
 |:-------------- |:------------ |:--------------- |:----------------- |:-------------------------------- |
-| **id**         | BIGINT       | PK, Auto Inc    | -                 | 分类唯一标识                           |
-| **parent_id**  | BIGINT       | NOT NULL, Index | 0                 | **父分类ID**。`0` 表示顶级分类，非 `0` 表示子分类 |
+| **id**         | INT       | PK, Auto Inc    | -                 | 分类唯一标识                           |
+| **parent_id**  | INT       | NOT NULL, Index | 0                 | **父分类ID**。`0` 表示顶级分类，非 `0` 表示子分类 |
 | **name**       | VARCHAR(50)  | NOT NULL, 联合唯一  | -                 | 分类名称（建议加唯一约束：同一父分类下名称不重复）        |
 | **sort_order** | INT          | NOT NULL        | 0                 | 排序权重，数值越小越靠前（用于前端展示排序）           |
 | **icon**       | VARCHAR(255) | NULL            | NULL              | 分类图标（URL 或前端图标库的 class 名）        |
@@ -83,9 +83,9 @@
 
 | 字段名        | 数据类型         | 约束/键 (含外键命名)                                   | 默认值               | 说明                                    |
 |:---------- |:------------ |:---------------------------------------------- |:----------------- |:------------------------------------- |
-| **id**     | BIGINT       | PK, Auto Inc                                   | -                 | 订单唯一标识                                |
-| user_id    | BIGINT       | **FK (`fk_borrow_order_user_id`)**<br>NOT NULL | -                 | 借用人（关联 `sys_user.id`）                 |
-| admin_id   | BIGINT       | **FK (`fk_borrow_order_admin_id`)**<br>NULL    | NULL              | 审批管理员（关联 `sys_user.id`）               |
+| **id**     | INT       | PK, Auto Inc                                   | -                 | 订单唯一标识                                |
+| user_id    | INT       | **FK (`fk_borrow_order_user_id`)**<br>NOT NULL | -                 | 借用人（关联 `sys_user.id`）                 |
+| admin_id   | INT       | **FK (`fk_borrow_order_admin_id`)**<br>NULL    | NULL              | 审批管理员（关联 `sys_user.id`）               |
 | submit_at  | DATETIME     | NOT NULL                                       | -                 | 用户提交申请时间                              |
 | confirm_at | DATETIME     | NULL                                           | NULL              | 管理员确认/审批时间                            |
 | due_date   | DATETIME     | NULL                                           | NULL              | 应还时间（用于计算逾期）                          |
@@ -100,9 +100,9 @@
 
 | 字段名          | 数据类型     | 约束/键 (含外键命名)                                  | 默认值               | 说明                         |
 |:------------ |:-------- |:--------------------------------------------- |:----------------- |:-------------------------- |
-| **id**       | BIGINT   | PK, Auto Inc                                  | -                 | 明细行唯一标识                    |
-| order_id     | BIGINT   | **FK (`fk_order_item_order_id`)**<br>NOT NULL | -                 | 关联订单主表                     |
-| item_id      | BIGINT   | **FK (`fk_order_item_item_id`)**<br>NOT NULL  | -                 | 关联物料表                      |
+| **id**       | INT   | PK, Auto Inc                                  | -                 | 明细行唯一标识                    |
+| order_id     | INT   | **FK (`fk_order_item_order_id`)**<br>NOT NULL | -                 | 关联订单主表                     |
+| item_id      | INT   | **FK (`fk_order_item_item_id`)**<br>NOT NULL  | -                 | 关联物料表                      |
 | borrow_qty   | INT      | NOT NULL                                      | -                 | **借出数量**（创建后不可改）           |
 | returned_qty | INT      | NOT NULL                                      | 0                 | **已归还数量**（每次有效归还累加）        |
 | status       | TINYINT  | NOT NULL                                      | 1                 | 行项状态：1-未还完, 2-已还清, 3-损坏/遗失 |
@@ -113,18 +113,18 @@
 
 | 字段名             | 数据类型         | 约束/键 (含外键命名)                                     | 默认值               | 说明                          |
 |:--------------- |:------------ |:------------------------------------------------ |:----------------- |:--------------------------- |
-| **id**          | BIGINT       | PK, Auto Inc                                     | -                 | 流水唯一标识                      |
-| order_id        | BIGINT       | **FK (`fk_return_record_order_id`)**<br>NOT NULL | -                 | 关联订单主表                      |
-| item_id         | BIGINT       | **FK (`fk_return_record_item_id`)**<br>NOT NULL  | -                 | 关联物料表                       |
+| **id**          | INT       | PK, Auto Inc                                     | -                 | 流水唯一标识                      |
+| order_id        | INT       | **FK (`fk_return_record_order_id`)**<br>NOT NULL | -                 | 关联订单主表                      |
+| item_id         | INT       | **FK (`fk_return_record_item_id`)**<br>NOT NULL  | -                 | 关联物料表                       |
 | return_qty      | INT          | NOT NULL                                         | -                 | **本次归还数量**                  |
 | return_at       | DATETIME     | NOT NULL                                         | CURRENT_TIMESTAMP | 实际归还时间                      |
-| admin_id        | BIGINT       | **FK (`fk_return_record_admin_id`)**<br>NOT NULL | -                 | 接收归还的管理员                    |
+| admin_id        | INT       | **FK (`fk_return_record_admin_id`)**<br>NOT NULL | -                 | 接收归还的管理员                    |
 | item_condition  | TINYINT      | NOT NULL                                         | 1                 | 归还时物料状态：1-完好, 2-磨损, 3-损坏    |
 | remark          | VARCHAR(255) | NULL                                             | NULL              | 归还备注                        |
 | created_at      | DATETIME     | NOT NULL                                         | CURRENT_TIMESTAMP | 记录创建时间                      |
 | **is_void**     | TINYINT      | NOT NULL                                         | 0                 | **是否作废：0-有效，1-已作废**         |
 | **void_at**     | DATETIME     | NULL                                             | NULL              | **作废时间**                    |
-| **void_by**     | BIGINT       | **FK (`fk_return_record_void_by`)**<br>NULL      | NULL              | **作废操作人（关联 `sys_user.id`）** |
+| **void_by**     | INT       | **FK (`fk_return_record_void_by`)**<br>NULL      | NULL              | **作废操作人（关联 `sys_user.id`）** |
 | **void_reason** | VARCHAR(255) | NULL                                             | NULL              | **作废原因（必填，用于审计）**           |
 
 ## 数据流转说明
@@ -320,7 +320,7 @@ COMMENT ON COLUMN sys_user.updated_at IS '更新时间';
 -- -----------------------------------------------------
 CREATE TABLE item_category (
   id BIGSERIAL PRIMARY KEY,
-  parent_id BIGINT NOT NULL DEFAULT 0,
+  parent_id INT NOT NULL DEFAULT 0,
   name VARCHAR(50) NOT NULL,
   sort_order INT NOT NULL DEFAULT 0,
   icon VARCHAR(255) DEFAULT NULL,
@@ -350,7 +350,7 @@ COMMENT ON COLUMN item_category.updated_at IS '更新时间';
 CREATE TABLE item (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
-  category_id BIGINT NOT NULL,
+  category_id INT NOT NULL,
   description TEXT DEFAULT NULL,
   total_stock INT NOT NULL DEFAULT 0,
   available_stock INT NOT NULL DEFAULT 0,
@@ -379,8 +379,8 @@ COMMENT ON COLUMN item.updated_at IS '更新时间';
 -- -----------------------------------------------------
 CREATE TABLE borrow_order (
   id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  admin_id BIGINT DEFAULT NULL,
+  user_id INT NOT NULL,
+  admin_id INT DEFAULT NULL,
   submit_at TIMESTAMP NOT NULL,
   confirm_at TIMESTAMP DEFAULT NULL,
   due_date TIMESTAMP DEFAULT NULL,
@@ -410,8 +410,8 @@ COMMENT ON COLUMN borrow_order.updated_at IS '更新时间';
 -- -----------------------------------------------------
 CREATE TABLE borrow_order_item (
   id BIGSERIAL PRIMARY KEY,
-  order_id BIGINT NOT NULL,
-  item_id BIGINT NOT NULL,
+  order_id INT NOT NULL,
+  item_id INT NOT NULL,
   borrow_qty INT NOT NULL,
   returned_qty INT NOT NULL DEFAULT 0,
   status SMALLINT NOT NULL DEFAULT 1,
@@ -437,17 +437,17 @@ COMMENT ON COLUMN borrow_order_item.updated_at IS '更新时间';
 -- -----------------------------------------------------
 CREATE TABLE return_record (
   id BIGSERIAL PRIMARY KEY,
-  order_id BIGINT NOT NULL,
-  item_id BIGINT NOT NULL,
+  order_id INT NOT NULL,
+  item_id INT NOT NULL,
   return_qty INT NOT NULL,
   return_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  admin_id BIGINT NOT NULL,
+  admin_id INT NOT NULL,
   item_condition SMALLINT NOT NULL DEFAULT 1, 
   remark VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   is_void SMALLINT NOT NULL DEFAULT 0,
   void_at TIMESTAMP DEFAULT NULL,
-  void_by BIGINT DEFAULT NULL,
+  void_by INT DEFAULT NULL,
   void_reason VARCHAR(255) DEFAULT NULL,
   CONSTRAINT fk_return_record_order_id FOREIGN KEY (order_id) REFERENCES borrow_order (id),
   CONSTRAINT fk_return_record_item_id FOREIGN KEY (item_id) REFERENCES item (id),

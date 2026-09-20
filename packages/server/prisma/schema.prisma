@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id            BigInt   @id @default(autoincrement())
+  id            Int   @id @default(autoincrement())
   username      String   @unique(map: "uk_username") @db.VarChar(50)
   role          String   @default("user") @db.VarChar(50)
   password_hash String   @db.VarChar(255)
@@ -26,8 +26,8 @@ model User {
 }
 
 model ItemCategory {
-  id         BigInt   @id @default(autoincrement())
-  parent_id  BigInt   @default(0)
+  id         Int   @id @default(autoincrement())
+  parent_id  Int   @default(0)
   name       String   @db.VarChar(50)
   sort_order Int      @default(0)
   icon       String?  @db.VarChar(255)
@@ -43,9 +43,9 @@ model ItemCategory {
 }
 
 model Item {
-  id              BigInt   @id @default(autoincrement())
+  id              Int   @id @default(autoincrement())
   name            String   @db.VarChar(100)
-  category_id     BigInt
+  category_id     Int
   description     String?  @db.Text
   total_stock     Int      @default(0)
   available_stock Int      @default(0)
@@ -62,9 +62,9 @@ model Item {
 }
 
 model BorrowOrder {
-  id         BigInt    @id @default(autoincrement())
-  user_id    BigInt
-  admin_id   BigInt?
+  id         Int    @id @default(autoincrement())
+  user_id    Int
+  admin_id   Int?
   submit_at  DateTime  @db.Timestamp(6)
   confirm_at DateTime? @db.Timestamp(6)
   due_date   DateTime? @db.Timestamp(6)
@@ -82,9 +82,9 @@ model BorrowOrder {
 }
 
 model BorrowOrderItem {
-  id           BigInt   @id @default(autoincrement())
-  order_id     BigInt
-  item_id      BigInt
+  id           Int   @id @default(autoincrement())
+  order_id     Int
+  item_id      Int
   borrow_qty   Int
   returned_qty Int      @default(0)
   status       Int      @default(1) @db.SmallInt
@@ -98,18 +98,18 @@ model BorrowOrderItem {
 }
 
 model ReturnRecord {
-  id             BigInt    @id @default(autoincrement())
-  order_id       BigInt
-  item_id        BigInt
+  id             Int    @id @default(autoincrement())
+  order_id       Int
+  item_id        Int
   return_qty     Int
   return_at      DateTime  @default(now()) @db.Timestamp(6)
-  admin_id       BigInt
+  admin_id       Int
   item_condition Int       @default(1) @db.SmallInt
   remark         String?   @db.VarChar(255)
   created_at     DateTime  @default(now()) @db.Timestamp(6)
   is_void        Int       @default(0) @db.SmallInt
   void_at        DateTime? @db.Timestamp(6)
-  void_by        BigInt?
+  void_by        Int?
   void_reason    String?   @db.VarChar(255)
 
   order     BorrowOrder @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_return_record_order_id")
