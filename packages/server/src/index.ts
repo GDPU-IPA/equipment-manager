@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.get('/',async (req, res) => {
   // 测试数据库连接
-  const users = await prisma.user.findFirst();
+  const users = await prisma.user.findMany();
   // res.json({ status: 'ok', dbConnected: true, usersCount });
   // res.json(users) 
   res.send(users)
