@@ -43,7 +43,7 @@
 | username      | VARCHAR(50)  | NOT NULL, Unique | -                 | 学号                          |
 | role          | VARCHAR(50)  | NOT NULL         | 'user'            | 角色（student, teacher, admin） |
 | password_hash | VARCHAR(255) | NOT NULL         | -                 | 密码哈希值                       |
-| profile       | JSON         | NULL             | NULL              | 附加信息（姓名/年级/班级/手机号/邮箱）       |
+| profile       | JSONB         | NULL             | NULL              | 附加信息（姓名/年级/班级/手机号/邮箱）       |
 | status        | TINYINT      | NOT NULL         | 1                 | 状态：1-正常，0-禁用，2-锁定           |
 | created_at    | DATETIME     | NOT NULL         | CURRENT_TIMESTAMP | 创建时间                        |
 | updated_at    | DATETIME     | NOT NULL         | CURRENT_TIMESTAMP | 更新时间                        |
