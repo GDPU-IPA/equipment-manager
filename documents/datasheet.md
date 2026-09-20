@@ -206,3 +206,171 @@
 
 ### 4.3 查询规范
 *   在所有涉及“当前有效归还总数”、“当前可用库存统计”的查询中，针对 `return_record` 表的查询**必须**包含过滤条件 `WHERE is_void = 0`，以排除已作废的脏数据。
+
+### PostgreSQL 建表脚本
+
+#### 1. 创建通用触发器函数（仅需执行一次）
+```sql
+CREATE OR REPLACE FUNCTION update_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+```
+
+#### 2. 创建表结构、外键与注释（直接复制执行）
+
+```sql
+-- -----------------------------------------------------
+-- 1. 创建系统用户表 (sys_user) - 原名 user
+-- -----------------------------------------------------
+CREATE TABLE sys_user (
+  id BIGSERIAL PRIMARY KEY,
+  username VARCHAR(50) NOT NULL,
+  role VARCHAR(50) NOT NULL DEFAULT 'user',
+  password_hash VARCHAR(255) NOT NULL,
+  profile JSONB DEFAULT NULL,
+  status SMALLINT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uk_username UNIQUE (username)
+);
+CREATE TRIGGER trg_sys_user_updated_at BEFORE UPDATE ON sys_user FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+COMMENT ON TABLE sys_user IS '系统用户表';
+COMMENT ON COLUMN sys_user.id IS '用户唯一标识';
+COMMENT ON COLUMN sys_user.username IS '登录账号/姓名';
+COMMENT ON COLUMN sys_user.role IS '角色（student, teacher, admin）';
+COMMENT ON COLUMN sys_user.password_hash IS '密码哈希值';
+COMMENT ON COLUMN sys_user.profile IS '附加信息（手机号、邮箱等）';
+COMMENT ON COLUMN sys_user.status IS '状态：1-正常，0-禁用，2-锁定';
+COMMENT ON COLUMN sys_user.created_at IS '创建时间';
+COMMENT ON COLUMN sys_user.updated_at IS '更新时间';
+
+-- -----------------------------------------------------
+-- 2. 创建物料表 (item)
+-- -----------------------------------------------------
+CREATE TABLE item (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT DEFAULT NULL,
+  total_stock INT NOT NULL DEFAULT 0,
+  available_stock INT NOT NULL DEFAULT 0,
+  status SMALLINT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TRIGGER trg_item_updated_at BEFORE UPDATE ON item FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+COMMENT ON TABLE item IS '物料表';
+COMMENT ON COLUMN item.id IS '物料唯一标识';
+COMMENT ON COLUMN item.name IS '物料名称';
+COMMENT ON COLUMN item.description IS '规格型号/详细描述';
+COMMENT ON COLUMN item.total_stock IS '总库存数量（物理总数）';
+COMMENT ON COLUMN item.available_stock IS '当前可用库存（核心校验字段）';
+COMMENT ON COLUMN item.status IS '状态：1-正常，0-报废/停用';
+COMMENT ON COLUMN item.created_at IS '创建时间';
+COMMENT ON COLUMN item.updated_at IS '更新时间';
+
+-- -----------------------------------------------------
+-- 3. 创建借用订单主表 (borrow_order)
+-- -----------------------------------------------------
+CREATE TABLE borrow_order (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  admin_id BIGINT DEFAULT NULL,
+  submit_at TIMESTAMP NOT NULL,
+  confirm_at TIMESTAMP DEFAULT NULL,
+  due_date TIMESTAMP DEFAULT NULL,
+  status SMALLINT NOT NULL DEFAULT 0,
+  remark VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  -- 外键指向更新后的 sys_user 表
+  CONSTRAINT fk_borrow_order_user_id FOREIGN KEY (user_id) REFERENCES sys_user (id),
+  CONSTRAINT fk_borrow_order_admin_id FOREIGN KEY (admin_id) REFERENCES sys_user (id)
+);
+CREATE TRIGGER trg_borrow_order_updated_at BEFORE UPDATE ON borrow_order FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+COMMENT ON TABLE borrow_order IS '借用订单主表';
+COMMENT ON COLUMN borrow_order.id IS '订单唯一标识';
+COMMENT ON COLUMN borrow_order.user_id IS '借用人（关联 sys_user.id）';
+COMMENT ON COLUMN borrow_order.admin_id IS '审批管理员（关联 sys_user.id）';
+COMMENT ON COLUMN borrow_order.submit_at IS '用户提交申请时间';
+COMMENT ON COLUMN borrow_order.confirm_at IS '管理员确认/审批时间';
+COMMENT ON COLUMN borrow_order.due_date IS '应还时间（用于计算逾期）';
+COMMENT ON COLUMN borrow_order.status IS '状态：0-待审批, 1-借用中, 2-部分归还, 3-已结清, 4-已取消';
+COMMENT ON COLUMN borrow_order.remark IS '订单级备注';
+COMMENT ON COLUMN borrow_order.created_at IS '创建时间';
+COMMENT ON COLUMN borrow_order.updated_at IS '更新时间';
+
+-- -----------------------------------------------------
+-- 4. 创建借用订单明细表 (borrow_order_item)
+-- -----------------------------------------------------
+CREATE TABLE borrow_order_item (
+  id BIGSERIAL PRIMARY KEY,
+  order_id BIGINT NOT NULL,
+  item_id BIGINT NOT NULL,
+  borrow_qty INT NOT NULL,
+  returned_qty INT NOT NULL DEFAULT 0,
+  status SMALLINT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_order_item_order_id FOREIGN KEY (order_id) REFERENCES borrow_order (id),
+  CONSTRAINT fk_order_item_item_id FOREIGN KEY (item_id) REFERENCES item (id)
+);
+CREATE TRIGGER trg_borrow_order_item_updated_at BEFORE UPDATE ON borrow_order_item FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+COMMENT ON TABLE borrow_order_item IS '借用订单明细表';
+COMMENT ON COLUMN borrow_order_item.id IS '明细行唯一标识';
+COMMENT ON COLUMN borrow_order_item.order_id IS '关联订单主表';
+COMMENT ON COLUMN borrow_order_item.item_id IS '关联物料表';
+COMMENT ON COLUMN borrow_order_item.borrow_qty IS '借出数量（创建后不可改）';
+COMMENT ON COLUMN borrow_order_item.returned_qty IS '已归还数量（每次有效归还累加）';
+COMMENT ON COLUMN borrow_order_item.status IS '行项状态：1-未还完, 2-已还清, 3-损坏/遗失';
+COMMENT ON COLUMN borrow_order_item.created_at IS '创建时间';
+COMMENT ON COLUMN borrow_order_item.updated_at IS '更新时间';
+
+-- -----------------------------------------------------
+-- 5. 创建归还流水表 (return_record)
+-- -----------------------------------------------------
+CREATE TABLE return_record (
+  id BIGSERIAL PRIMARY KEY,
+  order_id BIGINT NOT NULL,
+  item_id BIGINT NOT NULL,
+  return_qty INT NOT NULL,
+  return_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  admin_id BIGINT NOT NULL,
+  -- 字段名由 condition 改为 item_condition，彻底告别双引号转义
+  item_condition SMALLINT NOT NULL DEFAULT 1, 
+  remark VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  is_void SMALLINT NOT NULL DEFAULT 0,
+  void_at TIMESTAMP DEFAULT NULL,
+  void_by BIGINT DEFAULT NULL,
+  void_reason VARCHAR(255) DEFAULT NULL,
+  CONSTRAINT fk_return_record_order_id FOREIGN KEY (order_id) REFERENCES borrow_order (id),
+  CONSTRAINT fk_return_record_item_id FOREIGN KEY (item_id) REFERENCES item (id),
+  -- 外键指向更新后的 sys_user 表
+  CONSTRAINT fk_return_record_admin_id FOREIGN KEY (admin_id) REFERENCES sys_user (id),
+  CONSTRAINT fk_return_record_void_by FOREIGN KEY (void_by) REFERENCES sys_user (id)
+);
+CREATE TRIGGER trg_return_record_updated_at BEFORE UPDATE ON return_record FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+
+COMMENT ON TABLE return_record IS '归还流水表';
+COMMENT ON COLUMN return_record.id IS '流水唯一标识';
+COMMENT ON COLUMN return_record.order_id IS '关联订单主表';
+COMMENT ON COLUMN return_record.item_id IS '关联物料表';
+COMMENT ON COLUMN return_record.return_qty IS '本次归还数量';
+COMMENT ON COLUMN return_record.return_at IS '实际归还时间';
+COMMENT ON COLUMN return_record.admin_id IS '接收归还的管理员';
+COMMENT ON COLUMN return_record.item_condition IS '归还时物料状况：1-完好, 2-磨损, 3-损坏';
+COMMENT ON COLUMN return_record.remark IS '归还备注';
+COMMENT ON COLUMN return_record.created_at IS '记录创建时间';
+COMMENT ON COLUMN return_record.is_void IS '是否作废：0-有效，1-已作废';
+COMMENT ON COLUMN return_record.void_at IS '作废时间';
+COMMENT ON COLUMN return_record.void_by IS '作废操作人（关联 sys_user.id）';
+COMMENT ON COLUMN return_record.void_reason IS '作废原因（必填，用于审计）';
+```
