@@ -52,18 +52,32 @@
 
 存储物料的抽象定义和全局库存。
 
-| 字段名             | 数据类型         | 约束/键         | 默认值               | 说明              |
-|:--------------- |:------------ |:------------ |:----------------- |:--------------- |
-| **id**          | BIGINT       | PK, Auto Inc | -                 | 物料唯一标识          |
-| name            | VARCHAR(100) | NOT NULL     | -                 | 物料名称            |
-| description     | TEXT         | NULL         | NULL              | 规格型号/详细描述       |
-| total_stock     | INT          | NOT NULL     | 0                 | 总库存数量（物理总数）     |
-| available_stock | INT          | NOT NULL     | 0                 | 当前可用库存          |
-| status          | TINYINT      | NOT NULL     | 1                 | 状态：1-正常，0-报废/停用 |
-| created_at      | DATETIME     | NOT NULL     | CURRENT_TIMESTAMP | 创建时间            |
-| updated_at      | DATETIME     | NOT NULL     | CURRENT_TIMESTAMP | 更新时间            |
+| 字段名             | 数据类型         | 约束/键                                    | 默认值               | 说明                  |
+|:--------------- |:------------ |:--------------------------------------- |:----------------- |:------------------- |
+| **id**          | BIGINT       | PK, Auto Inc                            | -                 | 物料唯一标识              |
+| name            | VARCHAR(100) | NOT NULL                                | -                 | 物料名称                |
+| category_id     | BIGINT       | FK (fk_item_category_id)NOT NULL, Index | NULL              | 关联 item_category.id |
+| description     | TEXT         | NULL                                    | NULL              | 规格型号/详细描述           |
+| total_stock     | INT          | NOT NULL                                | 0                 | 总库存数量（物理总数）         |
+| available_stock | INT          | NOT NULL                                | 0                 | 当前可用库存              |
+| status          | TINYINT      | NOT NULL                                | 1                 | 状态：1-正常，0-报废/停用     |
+| created_at      | DATETIME     | NOT NULL                                | CURRENT_TIMESTAMP | 创建时间                |
+| updated_at      | DATETIME     | NOT NULL                                | CURRENT_TIMESTAMP | 更新时间                |
 
-### 1.3 借用订单主表 (`borrow_order`)
+### 1.3 物料分类表 (`item_category`)
+
+| 字段名            | 数据类型         | 约束/键            | 默认值               | 说明                               |
+|:-------------- |:------------ |:--------------- |:----------------- |:-------------------------------- |
+| **id**         | BIGINT       | PK, Auto Inc    | -                 | 分类唯一标识                           |
+| **parent_id**  | BIGINT       | NOT NULL, Index | 0                 | **父分类ID**。`0` 表示顶级分类，非 `0` 表示子分类 |
+| **name**       | VARCHAR(50)  | NOT NULL, 联合唯一  | -                 | 分类名称（建议加唯一约束：同一父分类下名称不重复）        |
+| **sort_order** | INT          | NOT NULL        | 0                 | 排序权重，数值越小越靠前（用于前端展示排序）           |
+| **icon**       | VARCHAR(255) | NULL            | NULL              | 分类图标（URL 或前端图标库的 class 名）        |
+| **status**     | TINYINT      | NOT NULL        | 1                 | 状态：`1`-启用，`0`-禁用                 |
+| created_at     | DATETIME     | NOT NULL        | CURRENT_TIMESTAMP | 创建时间                             |
+| updated_at     | DATETIME     | NOT NULL        | CURRENT_TIMESTAMP | 更新时间                             |
+
+### 1.4 借用订单主表 (`borrow_order`)
 
 记录借用行为的宏观信息。
 
@@ -80,7 +94,7 @@
 | created_at | DATETIME     | NOT NULL                                       | CURRENT_TIMESTAMP | 创建时间                                  |
 | updated_at | DATETIME     | NOT NULL                                       | CURRENT_TIMESTAMP | 更新时间                                  |
 
-### 1.4 借用订单明细表 (`borrow_order_item`)
+### 1.5 借用订单明细表 (`borrow_order_item`)
 
 记录该订单具体借了哪些物料，及每种物料的归还进度。
 
@@ -95,7 +109,7 @@
 | created_at   | DATETIME | NOT NULL                                      | CURRENT_TIMESTAMP | 创建时间                       |
 | updated_at   | DATETIME | NOT NULL                                      | CURRENT_TIMESTAMP | 更新时间                       |
 
-### 1.5 归还流水表 (`return_record`)
+### 1.6 归还流水表 (`return_record`)
 
 | 字段名             | 数据类型         | 约束/键 (含外键命名)                                     | 默认值               | 说明                          |
 |:--------------- |:------------ |:------------------------------------------------ |:----------------- |:--------------------------- |
@@ -133,9 +147,13 @@
 **数据流转步骤**：
 
 1. **创建订单主表**：向 `borrow_order` 插入记录，初始化 `status = 0` (待审批)，记录 `submit_at`。
+
 2. **创建订单明细**：向 `borrow_order_item` 批量插入记录，初始化 `borrow_qty` 为申请数量，`returned_qty = 0`，`status = 1` (未还完)。
+
 3. **审批与库存扣减（事务操作）**：
+   
    * 更新 `borrow_order`：填充 `admin_id`, `confirm_at`, `due_date`，将 `status` 更新为 `1` (借用中)。
+   
    * **库存校验与扣减**：遍历 `borrow_order_item`，对 `item` 表执行原子更新：
      
      ```sql
@@ -153,6 +171,7 @@
 **数据流转步骤**：
 
 1. **创建归还流水**：向 `return_record` 插入记录，记录 `return_qty`, `return_at`, `admin_id`, `item_condition`，初始化 `is_void = 0` (有效)。
+
 2. **更新明细进度**：累加 `borrow_order_item.returned_qty`：
    
    ```sql
@@ -160,12 +179,15 @@
    SET returned_qty = returned_qty + #{return_qty} 
    WHERE order_id = #{order_id} AND item_id = #{item_id};
    ```
+
 3. **恢复可用库存**：对 `item` 表执行原子更新：
    
    ```sql
    UPDATE item SET available_stock = available_stock + #{return_qty} WHERE id = #{item_id};
    ```
+
 4. **状态自动重算**：
+   
    * **明细状态**：查询更新后的 `borrow_order_item`，若 `returned_qty == borrow_qty`，则将其 `status` 更新为 `2` (已还清)。
    * **主表状态**：查询该 `order_id` 下的所有明细。若所有明细 `status = 2`，则将 `borrow_order.status` 更新为 `3` (已结清)；若存在 `returned_qty < borrow_qty` 的明细，则将其更新为 `2` (部分归还)。
 
@@ -176,6 +198,7 @@
 **数据流转步骤**：
 
 1. **前置校验**：查询目标 `return_record`，确认其 `is_void = 0` (处于有效状态)。
+
 2. **执行逻辑作废**：更新目标流水记录，标记作废信息：
    
    ```sql
@@ -183,6 +206,7 @@
    SET is_void = 1, void_at = NOW(), void_by = #{admin_id}, void_reason = #{reason}
    WHERE id = #{record_id} AND is_void = 0;
    ```
+
 3. **回滚明细数据**：扣减之前错误累加的 `returned_qty`：
    
    ```sql
@@ -192,11 +216,13 @@
    ```
    
    *(注：回滚后，需重新判断该明细状态。若 `returned_qty < borrow_qty`，必须将其 `status` 从 `2` (已还清) 重置回 `1` (未还完)。)*
+
 4. **回滚可用库存**：扣减之前错误增加的库存：
    
    ```sql
    UPDATE item SET available_stock = available_stock - #{原return_qty} WHERE id = #{item_id};
    ```
+
 5. **订单状态重算**：同场景 2.2 的步骤 4，根据回滚后的明细数据，重新计算并更新 `borrow_order.status`。
 
 ---
@@ -264,7 +290,7 @@ $$ language 'plpgsql';
 
 ```sql
 -- -----------------------------------------------------
--- 1. 创建系统用户表 (sys_user) - 原名 user
+-- 1. 创建系统用户表 (sys_user)
 -- -----------------------------------------------------
 CREATE TABLE sys_user (
   id BIGSERIAL PRIMARY KEY,
@@ -281,41 +307,75 @@ CREATE TRIGGER trg_sys_user_updated_at BEFORE UPDATE ON sys_user FOR EACH ROW EX
 
 COMMENT ON TABLE sys_user IS '系统用户表';
 COMMENT ON COLUMN sys_user.id IS '用户唯一标识';
-COMMENT ON COLUMN sys_user.username IS '登录账号/姓名';
+COMMENT ON COLUMN sys_user.username IS '学号';
 COMMENT ON COLUMN sys_user.role IS '角色（student, teacher, admin）';
 COMMENT ON COLUMN sys_user.password_hash IS '密码哈希值';
-COMMENT ON COLUMN sys_user.profile IS '附加信息（手机号、邮箱等）';
+COMMENT ON COLUMN sys_user.profile IS '附加信息（姓名/年级/班级/手机号/邮箱）';
 COMMENT ON COLUMN sys_user.status IS '状态：1-正常，0-禁用，2-锁定';
 COMMENT ON COLUMN sys_user.created_at IS '创建时间';
 COMMENT ON COLUMN sys_user.updated_at IS '更新时间';
 
 -- -----------------------------------------------------
--- 2. 创建物料表 (item)
+-- 2. 创建物料分类表 (item_category) - 新增
+-- -----------------------------------------------------
+CREATE TABLE item_category (
+  id BIGSERIAL PRIMARY KEY,
+  parent_id BIGINT NOT NULL DEFAULT 0,
+  name VARCHAR(50) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  icon VARCHAR(255) DEFAULT NULL,
+  status SMALLINT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  -- 联合唯一约束：同一父分类下名称不重复
+  CONSTRAINT uk_parent_name UNIQUE (parent_id, name)
+);
+CREATE TRIGGER trg_item_category_updated_at BEFORE UPDATE ON item_category FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+-- 为 parent_id 创建索引，加速树形结构/子分类查询
+CREATE INDEX idx_item_category_parent_id ON item_category(parent_id);
+
+COMMENT ON TABLE item_category IS '物料分类表';
+COMMENT ON COLUMN item_category.id IS '分类唯一标识';
+COMMENT ON COLUMN item_category.parent_id IS '父分类ID。0 表示顶级分类，非 0 表示子分类';
+COMMENT ON COLUMN item_category.name IS '分类名称';
+COMMENT ON COLUMN item_category.sort_order IS '排序权重，数值越小越靠前（用于前端展示排序）';
+COMMENT ON COLUMN item_category.icon IS '分类图标（URL 或前端图标库的 class 名）';
+COMMENT ON COLUMN item_category.status IS '状态：1-启用，0-禁用';
+COMMENT ON COLUMN item_category.created_at IS '创建时间';
+COMMENT ON COLUMN item_category.updated_at IS '更新时间';
+
+-- -----------------------------------------------------
+-- 3. 创建物料表 (item)
 -- -----------------------------------------------------
 CREATE TABLE item (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
+  category_id BIGINT NOT NULL,
   description TEXT DEFAULT NULL,
   total_stock INT NOT NULL DEFAULT 0,
   available_stock INT NOT NULL DEFAULT 0,
   status SMALLINT NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_item_category_id FOREIGN KEY (category_id) REFERENCES item_category (id)
 );
 CREATE TRIGGER trg_item_updated_at BEFORE UPDATE ON item FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+-- PG 外键不自动创建索引，显式创建以加速按分类查询物料
+CREATE INDEX idx_item_category_id ON item(category_id);
 
 COMMENT ON TABLE item IS '物料表';
 COMMENT ON COLUMN item.id IS '物料唯一标识';
 COMMENT ON COLUMN item.name IS '物料名称';
+COMMENT ON COLUMN item.category_id IS '关联 item_category.id';
 COMMENT ON COLUMN item.description IS '规格型号/详细描述';
 COMMENT ON COLUMN item.total_stock IS '总库存数量（物理总数）';
-COMMENT ON COLUMN item.available_stock IS '当前可用库存（核心校验字段）';
+COMMENT ON COLUMN item.available_stock IS '当前可用库存';
 COMMENT ON COLUMN item.status IS '状态：1-正常，0-报废/停用';
 COMMENT ON COLUMN item.created_at IS '创建时间';
 COMMENT ON COLUMN item.updated_at IS '更新时间';
 
 -- -----------------------------------------------------
--- 3. 创建借用订单主表 (borrow_order)
+-- 4. 创建借用订单主表 (borrow_order)
 -- -----------------------------------------------------
 CREATE TABLE borrow_order (
   id BIGSERIAL PRIMARY KEY,
@@ -328,7 +388,6 @@ CREATE TABLE borrow_order (
   remark VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  -- 外键指向更新后的 sys_user 表
   CONSTRAINT fk_borrow_order_user_id FOREIGN KEY (user_id) REFERENCES sys_user (id),
   CONSTRAINT fk_borrow_order_admin_id FOREIGN KEY (admin_id) REFERENCES sys_user (id)
 );
@@ -347,7 +406,7 @@ COMMENT ON COLUMN borrow_order.created_at IS '创建时间';
 COMMENT ON COLUMN borrow_order.updated_at IS '更新时间';
 
 -- -----------------------------------------------------
--- 4. 创建借用订单明细表 (borrow_order_item)
+-- 5. 创建借用订单明细表 (borrow_order_item)
 -- -----------------------------------------------------
 CREATE TABLE borrow_order_item (
   id BIGSERIAL PRIMARY KEY,
@@ -374,7 +433,7 @@ COMMENT ON COLUMN borrow_order_item.created_at IS '创建时间';
 COMMENT ON COLUMN borrow_order_item.updated_at IS '更新时间';
 
 -- -----------------------------------------------------
--- 5. 创建归还流水表 (return_record)
+-- 6. 创建归还流水表 (return_record)
 -- -----------------------------------------------------
 CREATE TABLE return_record (
   id BIGSERIAL PRIMARY KEY,
@@ -383,7 +442,6 @@ CREATE TABLE return_record (
   return_qty INT NOT NULL,
   return_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   admin_id BIGINT NOT NULL,
-  -- 字段名由 condition 改为 item_condition，彻底告别双引号转义
   item_condition SMALLINT NOT NULL DEFAULT 1, 
   remark VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -393,7 +451,6 @@ CREATE TABLE return_record (
   void_reason VARCHAR(255) DEFAULT NULL,
   CONSTRAINT fk_return_record_order_id FOREIGN KEY (order_id) REFERENCES borrow_order (id),
   CONSTRAINT fk_return_record_item_id FOREIGN KEY (item_id) REFERENCES item (id),
-  -- 外键指向更新后的 sys_user 表
   CONSTRAINT fk_return_record_admin_id FOREIGN KEY (admin_id) REFERENCES sys_user (id),
   CONSTRAINT fk_return_record_void_by FOREIGN KEY (void_by) REFERENCES sys_user (id)
 );
@@ -406,7 +463,7 @@ COMMENT ON COLUMN return_record.item_id IS '关联物料表';
 COMMENT ON COLUMN return_record.return_qty IS '本次归还数量';
 COMMENT ON COLUMN return_record.return_at IS '实际归还时间';
 COMMENT ON COLUMN return_record.admin_id IS '接收归还的管理员';
-COMMENT ON COLUMN return_record.item_condition IS '归还时物料状况：1-完好, 2-磨损, 3-损坏';
+COMMENT ON COLUMN return_record.item_condition IS '归还时物料状态：1-完好, 2-磨损, 3-损坏';
 COMMENT ON COLUMN return_record.remark IS '归还备注';
 COMMENT ON COLUMN return_record.created_at IS '记录创建时间';
 COMMENT ON COLUMN return_record.is_void IS '是否作废：0-有效，1-已作废';
