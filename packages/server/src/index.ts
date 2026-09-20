@@ -15,13 +15,13 @@ app.use(express.json());
 
 app.get('/',async (req, res) => {
   // 测试数据库连接
-  const users = await prisma.user.findMany();
+  const users = await prisma.user.findFirst();
   // res.json({ status: 'ok', dbConnected: true, usersCount });
   // res.json(users) 
   res.send(users)
 });
 
-app.post('/')
+// app.post('/')
 
 app.listen(PORT, () => {
   console.log(`Server running on http://127.0.0.1:${PORT}`);
