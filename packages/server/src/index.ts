@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
+import apiRouter from './routes/index.js';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import  router  from '../routes/category.js'
 dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use('/api', router)
+app.use('/api', apiRouter)
 
 app.get('/', async (req: any, res: any) => {
   // 测试数据库连接
