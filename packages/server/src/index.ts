@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-
+import  router  from '../routes/category.js'
 dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
@@ -12,13 +12,14 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', router)
 
-app.get('/',async (req, res) => {
+app.get('/', async (req: any, res: any) => {
   // 测试数据库连接
   const users = await prisma.user.findFirst();
   // res.json({ status: 'ok', dbConnected: true, usersCount });
   // res.json(users) 
-  res.send(users)
+  res.send(users).status(201)
 });
 
 // app.post('/')
