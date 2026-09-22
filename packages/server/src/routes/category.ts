@@ -18,12 +18,12 @@ router.get('/', async (_req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ message: 'invalid id' });
+    res.status(400).json({ message: 'invalid_id' });
     return;
   }
   const category = await prisma.itemCategory.findUnique({ where: { id } });
   if (!category) {
-    res.status(404).json({ message: 'category not found' });
+    res.status(404).json({ message: 'category_not_found' });
     return;
   }
   res.json({ data: category });
