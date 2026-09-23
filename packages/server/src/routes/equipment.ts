@@ -1,11 +1,16 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '../db.js';
 import { prisma } from '../db.js'; 
 
 const router: Router = Router();
 
-const itemSelect = {
+const parseId = (raw: unknown): number | null => {
+    const id = Number(raw);
+    return Number.isInteger(id) && id > 0 ? id : null;
+};
+
+const itemBaseSelect = {
     id: true,
     name: true,
     category_id: true,
@@ -13,7 +18,11 @@ const itemSelect = {
     total_stock: true,
     available_stock: true,
     status: true,
-    category: { select: { id: true, name: true } },
+} satisfies Prisma.ItemSelect;
+
+const itemSelect = {
+    ...itemBaseSelect,
+    category: { select: { name: true } },
 } satisfies Prisma.ItemSelect;
 
 // GET /api/equipments?page=1&pageSize=20&name=万用表&category_id=5
@@ -45,8 +54,8 @@ router.get('/', async (req: Request, res: Response) => {
 
 // GET /api/equipments/:id
 router.get('/:id', async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id <= 0) {
+    const id = parseId(req.params.id);
+    if (id === null) {
         res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
         return;
     }
@@ -82,7 +91,7 @@ router.post('/', async (req: Request, res: Response) => {
         return;
     }
 
-    const category = await prisma.itemCategory.findUnique({ where: { id: category_id } });
+    const category = await prisma.itemCategory.findUnique({ where: { id: category_id }, select: { id: true } });
     if (!category) {
         res.status(400).json({ code: 400, msg: 'category_not_found', data: null });
         return;
@@ -97,7 +106,7 @@ router.post('/', async (req: Request, res: Response) => {
             available_stock: Number.isInteger(available_stock) ? available_stock : total_stock,
             status: status === 0 ? 0 : 1,
         },
-        select: itemSelect,
+        select: itemBaseSelect,
     });
 
     res.status(201).json({ code: 201, msg: 'success', data: created });
@@ -105,13 +114,13 @@ router.post('/', async (req: Request, res: Response) => {
 
 // PATCH /api/equipments/:id
 router.patch('/:id', async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id <= 0) {
+    const id = parseId(req.params.id);
+    if (id === null) {
         res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
         return;
     }
 
-    const current = await prisma.item.findUnique({ where: { id } });
+    const current = await prisma.item.findUnique({ where: { id }, select: { total_stock: true, available_stock: true } });
     if (!current) {
         res.status(404).json({ code: 404, msg: 'equipment_not_found', data: null });
         return;
@@ -128,7 +137,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
         data.description = description;
     }
     if (Number.isInteger(category_id) && category_id > 0) {
-        const category = await prisma.itemCategory.findUnique({ where: { id: category_id } });
+        const category = await prisma.itemCategory.findUnique({ where: { id: category_id }, select: { id: true } });
         if (!category) {
             res.status(400).json({ code: 400, msg: 'category_not_found', data: null });
             return;
@@ -151,14 +160,14 @@ router.patch('/:id', async (req: Request, res: Response) => {
         data.available_stock = nextAvailable;
     }
 
-    const updated = await prisma.item.update({ where: { id }, data, select: itemSelect });
+    const updated = await prisma.item.update({ where: { id }, data, select: itemBaseSelect });
     res.json({ code: 200, msg: 'success', data: updated });
 });
 
 // PATCH /api/equipments/:id/status
 router.patch('/:id/status', async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id <= 0) {
+    const id = parseId(req.params.id);
+    if (id === null) {
         res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
         return;
     }
@@ -169,7 +178,7 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
         return;
     }
 
-    const updated = await prisma.item.update({ where: { id }, data: { status }, select: itemSelect });
+    const updated = await prisma.item.update({ where: { id }, data: { status }, select: { id: true, status: true } });
     res.json({ code: 200, msg: 'success', data: updated });
 });
 
