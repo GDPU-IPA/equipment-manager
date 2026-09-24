@@ -11,8 +11,13 @@ export const router = createRouter({
     },
     {
       path: "/equipment",
-      component: () => import("./views/CatalogView.vue"),
+      component: () => import("./views/EquipmentView.vue"),
       meta: { title: "设备中心" },
+    },
+    {
+      path: "/demo/equipment",
+      component: () => import("./views/CatalogView.vue"),
+      meta: { title: "设备借用演示" },
     },
     {
       path: "/materials",

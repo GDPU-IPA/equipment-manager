@@ -135,7 +135,7 @@ const icons = [Monitor, Tools, Cpu];
       <router-link
         v-for="(asset, i) in available.slice(0, 3)"
         :key="asset.id"
-        :to="{ path: '/equipment', query: { detail: asset.id } }"
+        :to="{ path: '/demo/equipment', query: { detail: asset.id } }"
         class="recommended-card"
         ><div class="recommended-art" :class="'art-' + i">
           <el-icon><component :is="icons[i]" /></el-icon

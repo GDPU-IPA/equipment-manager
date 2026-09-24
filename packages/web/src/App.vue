@@ -127,8 +127,8 @@ function logout() {
         </div>
       </header>
       <div class="demo-banner">
-        <span>演示模式</span>
-        数据保存在当前浏览器，尚未连接后端；请使用虚构信息。<router-link
+        <span>{{ route.path === '/equipment' ? '接口预览' : '演示模式' }}</span>
+        {{ route.path === '/equipment' ? '器材从后端读取；当前账号仅用于本地体验，不代表后端登录。' : '此页使用浏览器演示数据；真实器材请进入设备中心。请使用虚构信息。' }}<router-link
           to="/profile"
           >账号设置 →</router-link
         >
