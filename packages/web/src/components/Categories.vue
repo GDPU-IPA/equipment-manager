@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api, errorMessage, type ApiResponse } from '../api'
 
@@ -54,4 +54,4 @@ onMounted(loadCategories)
 <style scoped>
 .card-header { display: flex; align-items: center; justify-content: space-between; }
 .message { margin-bottom: 16px; }
-</style>
+</style> -->

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api, errorMessage, type ApiResponse, type PageData } from '../api'
 
@@ -45,4 +45,4 @@ onMounted(loadSummary)
 <style scoped>
 .message { margin-bottom: 16px; }
 .el-col { margin-bottom: 20px; }
-</style>
+</style> -->
