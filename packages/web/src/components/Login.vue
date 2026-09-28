@@ -29,6 +29,7 @@ async function login() {
     })
     localStorage.setItem('token', data.data.token)
     localStorage.setItem('role', data.data.role)
+    localStorage.setItem('username', username.value.trim())
     await router.replace('/')
   } catch (reason) {
     error.value = errorMessage(reason)
@@ -40,6 +41,10 @@ async function login() {
 
 <template>
   <main class="login-page">
+    <!-- <el-card id="slogan">
+      <h1>广东药科大学</h1>
+      <h1>创新实践协会器材管理系统</h1>
+    </el-card> -->
     <el-card class="login-card" shadow="never">
       <template #header><strong>登录</strong></template>
       <el-alert v-if="error" :title="error" type="error" show-icon class="login-error" />
@@ -65,6 +70,14 @@ async function login() {
 </template>
 
 <style scoped>
+#slogan{
+  justify-content: center;
+  text-align: center;
+  /* margin-bottom: 12px; */
+  /* padding: 12px; */
+  /* background-color: aqua; */
+}
+
 .login-page {
   display: grid;
   min-height: 100vh;

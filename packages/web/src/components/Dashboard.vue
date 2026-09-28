@@ -1,4 +1,4 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api, errorMessage, type ApiResponse, type PageData } from '../api'
 
@@ -34,15 +34,28 @@ onMounted(loadSummary)
   <div v-loading="loading">
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
     <el-row :gutter="20">
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="器材数量" :value="equipmentTotal" /></el-card></el-col>
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="借用明细" :value="borrowTotal" /></el-card></el-col>
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="用户数量" :value="userTotal" /></el-card></el-col>
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="启用分类" :value="categoryTotal" /></el-card></el-col>
+      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="器材数量"
+            :value="equipmentTotal" /></el-card></el-col>
+      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="借用明细"
+            :value="borrowTotal" /></el-card></el-col>
+      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="用户数量"
+            :value="userTotal" /></el-card></el-col>
+      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="启用分类"
+            :value="categoryTotal" /></el-card></el-col>
     </el-row>
   </div>
 </template>
 
 <style scoped>
-.message { margin-bottom: 16px; }
-.el-col { margin-bottom: 20px; }
-</style> -->
+.message {
+  margin-bottom: 16px;
+}
+
+.el-col {
+  margin-bottom: 20px;
+}
+
+.el-card{
+  border-radius: 15px !important;
+}
+</style>

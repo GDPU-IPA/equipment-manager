@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = [
 
     {
         path: '/',
-        component: () => import('./components/Items.vue')
+        component: () => import('./components/Dashboard.vue')
     },
     {
         path: '/item',
@@ -20,7 +20,12 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/borrows',
         component: () => import('./components/Borrows.vue')
+    },
+    {
+        path: '/categories',
+        component: () => import('./components/Categories.vue')
     }
+
 
 
 ]

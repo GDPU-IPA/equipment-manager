@@ -1,4 +1,4 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api, errorMessage, type ApiResponse, type PageData } from '../api'
 
@@ -88,7 +88,7 @@ onMounted(loadUsers)
   </el-card>
 </template>
 
-<style scoped>
+<!-- <style scoped>
 .filters, .message { margin-bottom: 16px; }
 .el-pagination { justify-content: flex-end; margin-top: 16px; }
 </style> -->
