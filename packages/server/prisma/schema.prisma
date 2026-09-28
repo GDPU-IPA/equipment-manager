@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int   @id @default(autoincrement())
+  username      String   @unique(map: "uk_username") @db.VarChar(50)
+  role          String   @default("user") @db.VarChar(50)
+  password_hash String   @db.VarChar(255)
+  profile       Json?    @db.JsonB
+  status        Int      @default(1) @db.SmallInt
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  borrow_orders    BorrowOrder[]  @relation("BorrowOrderUser")
+  approved_orders  BorrowOrder[]  @relation("BorrowOrderAdmin")
+  received_returns ReturnRecord[] @relation("ReturnRecordAdmin")
+  voided_returns   ReturnRecord[] @relation("ReturnRecordVoidBy")
+
+  @@map("sys_user")
+}
+
+model ItemCategory {
+  id         Int   @id @default(autoincrement())
+  parent_id  Int   @default(0)
+  name       String   @db.VarChar(50)
+  sort_order Int      @default(0)
+  icon       String?  @db.VarChar(255)
+  status     Int      @default(1) @db.SmallInt
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  items Item[]
+
+  @@unique([parent_id, name], map: "uk_parent_name")
+  @@index([parent_id], map: "idx_item_category_parent_id")
+  @@map("item_category")
+}
+
+model Item {
+  id              Int   @id @default(autoincrement())
+  name            String   @db.VarChar(100)
+  category_id     Int
+  description     String?  @db.Text
+  total_stock     Int      @default(0)
+  available_stock Int      @default(0)
+  status          Int      @default(1) @db.SmallInt
+  created_at      DateTime @default(now()) @db.Timestamp(6)
+  updated_at      DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  category       ItemCategory      @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_item_category_id")
+  order_items    BorrowOrderItem[]
+  return_records ReturnRecord[]
+
+  @@index([category_id], map: "idx_item_category_id")
+  @@map("item")
+}
+
+model BorrowOrder {
+  id         Int    @id @default(autoincrement())
+  user_id    Int
+  admin_id   Int?
+  submit_at  DateTime  @db.Timestamp(6)
+  confirm_at DateTime? @db.Timestamp(6)
+  due_date   DateTime? @db.Timestamp(6)
+  status     Int       @default(0) @db.SmallInt
+  remark     String?   @db.VarChar(255)
+  created_at DateTime  @default(now()) @db.Timestamp(6)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+
+  user           User              @relation("BorrowOrderUser", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_borrow_order_user_id")
+  admin          User?             @relation("BorrowOrderAdmin", fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_borrow_order_admin_id")
+  order_items    BorrowOrderItem[]
+  return_records ReturnRecord[]
+
+  @@map("borrow_order")
+}
+
+model BorrowOrderItem {
+  id           Int   @id @default(autoincrement())
+  order_id     Int
+  item_id      Int
+  borrow_qty   Int
+  returned_qty Int      @default(0)
+  status       Int      @default(1) @db.SmallInt
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  updated_at   DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  order BorrowOrder @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order_item_order_id")
+  item  Item        @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_order_item_item_id")
+
+  @@map("borrow_order_item")
+}
+
+model ReturnRecord {
+  id             Int    @id @default(autoincrement())
+  order_id       Int
+  item_id        Int
+  return_qty     Int
+  return_at      DateTime  @default(now()) @db.Timestamp(6)
+  admin_id       Int
+  item_condition Int       @default(1) @db.SmallInt
+  remark         String?   @db.VarChar(255)
+  created_at     DateTime  @default(now()) @db.Timestamp(6)
+  is_void        Int       @default(0) @db.SmallInt
+  void_at        DateTime? @db.Timestamp(6)
+  void_by        Int?
+  void_reason    String?   @db.VarChar(255)
+
+  order     BorrowOrder @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_return_record_order_id")
+  item      Item        @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_return_record_item_id")
+  admin     User        @relation("ReturnRecordAdmin", fields: [admin_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_return_record_admin_id")
+  voided_by User?       @relation("ReturnRecordVoidBy", fields: [void_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_return_record_void_by")
+
+  @@map("return_record")
+}

@@ -1,0 +1,27 @@
+{
+  "name": "equipment-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "db:push": "pnpm --filter server db:push"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.4.2",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.4.2",
+  "type": "module",
+  "devDependencies": {
+    "turbo": "^2.10.13",
+    "typescript": "^7.0.2"
+  }
+}
