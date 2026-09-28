@@ -1,12 +1,18 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
   ],
   "compilerOptions": {
-  "paths": {
-    "@repo/shared": ["../shared/src/index.ts"]
+    "paths": {
+      "@repo/shared": [
+        "../shared/src/index.ts"
+      ]
+    }
   }
-}
 }
