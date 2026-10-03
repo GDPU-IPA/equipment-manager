@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
+import { Prisma as PrismaClient } from '@prisma/client';
 import type { Prisma } from '../db.js';
 import { prisma } from '../db.js'; 
 
@@ -78,7 +79,7 @@ router.post('/', async (req: Request, res: Response) => {
     const body = req.body ?? {};
     const { name, category_id, description, total_stock, available_stock, status } = body;
 
-    if (typeof name !== 'string' || !name.trim()) {
+    if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) {
         res.status(400).json({ code: 400, msg: 'name_is_required', data: null });
         return;
     }
@@ -88,6 +89,19 @@ router.post('/', async (req: Request, res: Response) => {
     }
     if (!Number.isInteger(total_stock) || total_stock < 0) {
         res.status(400).json({ code: 400, msg: 'total_stock_must_be_non_negative', data: null });
+        return;
+    }
+    if (available_stock !== undefined
+        && (!Number.isInteger(available_stock) || available_stock < 0 || available_stock > total_stock)) {
+        res.status(400).json({ code: 400, msg: 'available_stock_must_be_between_zero_and_total_stock', data: null });
+        return;
+    }
+    if (status !== undefined && status !== 0 && status !== 1) {
+        res.status(400).json({ code: 400, msg: 'status_must_be_0_or_1', data: null });
+        return;
+    }
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+        res.status(400).json({ code: 400, msg: 'description_must_be_a_string_or_null', data: null });
         return;
     }
 
@@ -127,16 +141,28 @@ router.patch('/:id', async (req: Request, res: Response) => {
     }
 
     const body = req.body ?? {};
-    const { name, category_id, description, total_stock } = body;
+    const { name, category_id, description, total_stock, available_stock, status } = body;
     const data: Prisma.ItemUpdateInput = {};
 
-    if (typeof name === 'string' && name.trim()) {
+    if (name !== undefined) {
+        if (typeof name !== 'string' || !name.trim() || name.trim().length > 100) {
+            res.status(400).json({ code: 400, msg: 'invalid_name', data: null });
+            return;
+        }
         data.name = name.trim();
     }
-    if (typeof description === 'string') {
+    if (description !== undefined && description !== null && typeof description !== 'string') {
+        res.status(400).json({ code: 400, msg: 'description_must_be_a_string_or_null', data: null });
+        return;
+    }
+    if (description !== undefined) {
         data.description = description;
     }
-    if (Number.isInteger(category_id) && category_id > 0) {
+    if (category_id !== undefined) {
+        if (!Number.isInteger(category_id) || category_id <= 0) {
+            res.status(400).json({ code: 400, msg: 'invalid_category_id', data: null });
+            return;
+        }
         const category = await prisma.itemCategory.findUnique({ where: { id: category_id }, select: { id: true } });
         if (!category) {
             res.status(400).json({ code: 400, msg: 'category_not_found', data: null });
@@ -145,23 +171,63 @@ router.patch('/:id', async (req: Request, res: Response) => {
         data.category = { connect: { id: category_id } };
     }
 
-    if (Number.isInteger(total_stock) && total_stock >= 0) {
-        const borrowed = current.total_stock - current.available_stock;
-        const nextAvailable = total_stock - borrowed;
-        if (nextAvailable < 0) {
+    if (total_stock !== undefined && (!Number.isInteger(total_stock) || total_stock < 0)) {
+        res.status(400).json({ code: 400, msg: 'total_stock_must_be_non_negative', data: null });
+        return;
+    }
+    if (available_stock !== undefined && (!Number.isInteger(available_stock) || available_stock < 0)) {
+        res.status(400).json({ code: 400, msg: 'available_stock_must_be_non_negative', data: null });
+        return;
+    }
+    if (status !== undefined && status !== 0 && status !== 1) {
+        res.status(400).json({ code: 400, msg: 'status_must_be_0_or_1', data: null });
+        return;
+    }
+
+    const borrowed = current.total_stock - current.available_stock;
+    const nextTotal = total_stock ?? current.total_stock;
+    if (nextTotal < borrowed) {
+        res.status(400).json({
+            code: 400,
+            msg: 'total_stock_cannot_be_less_than_borrowed',
+            data: { borrowed },
+        });
+        return;
+    }
+    if (total_stock !== undefined) {
+        data.total_stock = total_stock;
+    }
+    if (available_stock !== undefined) {
+        if (available_stock + borrowed > nextTotal) {
             res.status(400).json({
                 code: 400,
-                msg: 'total_stock_cannot_be_less_than_borrowed',
-                data: { borrowed: borrowed },
+                msg: 'available_stock_and_borrowed_stock_exceed_total_stock',
+                data: { borrowed },
             });
             return;
         }
-        data.total_stock = total_stock;
-        data.available_stock = nextAvailable;
+        data.available_stock = available_stock;
+    } else if (total_stock !== undefined) {
+        data.available_stock = nextTotal - borrowed;
+    }
+    if (status !== undefined) {
+        data.status = status;
+    }
+    if (Object.keys(data).length === 0) {
+        res.status(400).json({ code: 400, msg: 'no_fields_to_update', data: null });
+        return;
     }
 
-    const updated = await prisma.item.update({ where: { id }, data, select: itemBaseSelect });
-    res.json({ code: 200, msg: 'success', data: updated });
+    try {
+        const updated = await prisma.item.update({ where: { id }, data, select: itemBaseSelect });
+        res.json({ code: 200, msg: 'success', data: updated });
+    } catch (error) {
+        if (error instanceof PrismaClient.PrismaClientKnownRequestError && error.code === 'P2025') {
+            res.status(404).json({ code: 404, msg: 'equipment_not_found', data: null });
+            return;
+        }
+        throw error;
+    }
 });
 
 // PATCH /api/equipments/:id/status
@@ -178,8 +244,12 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
         return;
     }
 
-    const updated = await prisma.item.update({ where: { id }, data: { status }, select: { id: true, status: true } });
-    res.json({ code: 200, msg: 'success', data: updated });
+    const updated = await prisma.item.updateMany({ where: { id }, data: { status } });
+    if (updated.count === 0) {
+        res.status(404).json({ code: 404, msg: 'equipment_not_found', data: null });
+        return;
+    }
+    res.json({ code: 200, msg: 'success', data: { id, status } });
 });
 
 export default router;
