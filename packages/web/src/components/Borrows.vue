@@ -27,7 +27,7 @@ function formatDate(value: string | null) {
 }
 
 function statusText(value: number) {
-  return ({ 0: '待处理', 1: '借用中', 2: '已归还' } as Record<number, string>)[value] || `状态 ${value}`
+  return ({ 0: '待审批', 1: '借用中', 2: '部分归还', 3: '已结清', 4: '已取消' } as Record<number, string>)[value] || `状态 ${value}`
 }
 
 async function loadRecords() {
@@ -60,9 +60,11 @@ onMounted(loadRecords)
     <el-form inline class="filters">
       <el-form-item label="明细状态">
         <el-select v-model="status" clearable placeholder="全部" style="width: 140px">
-          <el-option label="待处理" :value="0" />
+          <el-option label="待审批" :value="0" />
           <el-option label="借用中" :value="1" />
-          <el-option label="已归还" :value="2" />
+          <el-option label="部分归还" :value="2" />
+          <el-option label="已结清" :value="3" />
+          <el-option label="已取消" :value="4" />
         </el-select>
       </el-form-item>
       <el-form-item><el-button type="primary" @click="search">查询</el-button></el-form-item>
@@ -75,7 +77,7 @@ onMounted(loadRecords)
       <el-table-column prop="borrow_qty" label="借用数量" width="100" />
       <el-table-column prop="returned_qty" label="已还数量" width="100" />
       <el-table-column label="状态" width="110">
-        <template #default="{ row }"><el-tag>{{ statusText(row.status) }}</el-tag></template>
+        <template #default="{ row }"><el-tag>{{ statusText(row.order.status) }}</el-tag></template>
       </el-table-column>
       <el-table-column label="应还时间" width="180">
         <template #default="{ row }">{{ formatDate(row.order.due_date) }}</template>
@@ -103,11 +105,13 @@ onMounted(loadRecords)
   <el-card shadow="never">
     <template #header><strong>借用记录</strong></template>
     <el-form inline class="filters">
-      <el-form-item label="明细状态">
+      <el-form-item label="订单状态">
         <el-select v-model="status" clearable placeholder="全部" style="width: 140px">
-          <el-option label="待处理" :value="0" />
+          <el-option label="待审批" :value="0" />
           <el-option label="借用中" :value="1" />
-          <el-option label="已归还" :value="2" />
+          <el-option label="部分归还" :value="2" />
+          <el-option label="已结清" :value="3" />
+          <el-option label="已取消" :value="4" />
         </el-select>
       </el-form-item>
       <el-form-item><el-button type="primary" @click="search">查询</el-button></el-form-item>
@@ -120,7 +124,7 @@ onMounted(loadRecords)
       <el-table-column prop="borrow_qty" label="借用数量" width="100" />
       <el-table-column prop="returned_qty" label="已还数量" width="100" />
       <el-table-column label="状态" width="110">
-        <template #default="{ row }"><el-tag>{{ statusText(row.status) }}</el-tag></template>
+        <template #default="{ row }"><el-tag>{{ statusText(row.order.status) }}</el-tag></template>
       </el-table-column>
       <el-table-column label="应还时间" width="180">
         <template #default="{ row }">{{ formatDate(row.order.due_date) }}</template>
@@ -167,7 +171,7 @@ function formatDate(value: string | null) {
 }
 
 function statusText(value: number) {
-  return ({ 0: '待处理', 1: '借用中', 2: '已归还' } as Record<number, string>)[value] || `状态 ${value}`
+  return ({ 0: '待审批', 1: '借用中', 2: '部分归还', 3: '已结清', 4: '已取消' } as Record<number, string>)[value] || `状态 ${value}`
 }
 
 async function loadRecords() {
