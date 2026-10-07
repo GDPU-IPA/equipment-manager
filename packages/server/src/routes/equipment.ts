@@ -2,7 +2,8 @@ import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { Prisma as PrismaClient } from '@prisma/client';
 import type { Prisma } from '../db.js';
-import { prisma } from '../db.js'; 
+import { prisma } from '../db.js';
+import { requireAdmin } from '../auth/require-auth.js';
 
 const router: Router = Router();
 
@@ -75,7 +76,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/equipments
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', requireAdmin, async (req: Request, res: Response) => {
     const body = req.body ?? {};
     const { name, category_id, description, total_stock, available_stock, status } = body;
 
@@ -127,7 +128,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // PATCH /api/equipments/:id
-router.patch('/:id', async (req: Request, res: Response) => {
+router.patch('/:id', requireAdmin, async (req: Request, res: Response) => {
     const id = parseId(req.params.id);
     if (id === null) {
         res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
@@ -231,7 +232,7 @@ router.patch('/:id', async (req: Request, res: Response) => {
 });
 
 // PATCH /api/equipments/:id/status
-router.patch('/:id/status', async (req: Request, res: Response) => {
+router.patch('/:id/status', requireAdmin, async (req: Request, res: Response) => {
     const id = parseId(req.params.id);
     if (id === null) {
         res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
