@@ -6,3 +6,22 @@ npx prisma@6 migrate dev --name init
 ```powershell
 pnpm --filter server exec prisma generate
 ```
+#### 创建vue组件直接复制这个去写
+```vue
+<template>
+
+
+</template>
+
+<script setup>
+
+
+</script>
+
+<style>
+
+
+</style>
+
+
+```
