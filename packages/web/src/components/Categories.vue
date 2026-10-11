@@ -5,12 +5,12 @@
   <el-card shadow="never">
     <template #header>
       <div class="card-header">
-        <!-- <span>器材分类</span> -->
+        <strong>器材分类</strong>
         <el-button @click="loadCategories">刷新</el-button>
       </div>
     </template>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
-    <el-table v-loading="loading" :data="categories" stripe>
+    <el-table v-loading="loading" :data="categories" stripe empty-text="暂无启用分类">
       <el-table-column prop="id" label="编号" width="90" />
       <el-table-column prop="name" label="分类名称" min-width="180" />
       <el-table-column prop="parent_id" label="父分类编号" width="130" />
@@ -46,6 +46,7 @@ async function loadCategories() {
     categories.value = data.data
   } catch (reason) {
     error.value = errorMessage(reason)
+    categories.value = []
   } finally {
     loading.value = false
   }

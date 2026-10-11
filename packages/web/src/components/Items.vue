@@ -21,6 +21,8 @@ const error = ref('')
 const dialogVisible = ref(false)
 const editingId = ref<number>()
 const saving = ref(false)
+const formError = ref('')
+const borrowedStock = ref(0)
 const form = ref<ItemForm>({ name: '', description: '', total_stock: 0, status: 1 })
 
 async function loadCategories() {
@@ -40,32 +42,46 @@ async function loadItems() {
   } catch (reason) {
     error.value = errorMessage(reason)
     items.value = []
+    total.value = 0
   } finally { loading.value = false }
 }
 
 function search() { page.value = 1; loadItems() }
 
 function openCreate() {
+  borrowedStock.value = 0
+  formError.value = ''
   editingId.value = undefined
   form.value = { name: '', description: '', total_stock: 0, status: 1 }
   dialogVisible.value = true
 }
 
 function openEdit(item: Item) {
+  borrowedStock.value = item.total_stock - item.available_stock
+  formError.value = ''
   editingId.value = item.id
   form.value = { name: item.name, category_id: item.category_id, description: item.description || '', total_stock: item.total_stock, available_stock: item.available_stock, status: item.status }
   dialogVisible.value = true
 }
 
 async function save() {
-  if (!form.value.name.trim() || !form.value.category_id || form.value.total_stock < 0) return
+  if (saving.value) return
+  formError.value = ''
+  if (!form.value.name.trim() || !form.value.category_id || !Number.isInteger(form.value.total_stock) || form.value.total_stock < 0) {
+    formError.value = '请填写名称、选择分类，并输入非负整数库存'
+    return
+  }
+  if (editingId.value && form.value.total_stock < borrowedStock.value) {
+    formError.value = '总库存不能少于已借出数量'
+    return
+  }
   saving.value = true
   try {
     if (editingId.value) await api.patch(`/equipments/${editingId.value}`, form.value)
     else await api.post('/equipments', form.value)
     dialogVisible.value = false
     await loadItems()
-  } catch (reason) { error.value = errorMessage(reason) }
+  } catch (reason) { formError.value = errorMessage(reason) }
   finally { saving.value = false }
 }
 
@@ -86,7 +102,7 @@ onMounted(() => { loadCategories(); loadItems() })
   <el-card shadow="never">
     <template #header>
       <div class="header">
-        <!-- <strong>器材管理</strong> -->
+        <strong>器材管理</strong>
         <el-button type="primary" @click="openCreate">新增器材</el-button></div>
     </template>
     <el-form inline class="filters">
@@ -98,7 +114,7 @@ onMounted(() => { loadCategories(); loadItems() })
       <el-form-item><el-button type="primary" @click="search">查询</el-button></el-form-item>
     </el-form>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
-    <el-table v-loading="loading" :data="items" stripe>
+    <el-table v-loading="loading" :data="items" stripe empty-text="暂无器材">
       <el-table-column prop="id" label="编号" width="80" />
       <el-table-column prop="name" label="名称" min-width="160" />
       <el-table-column label="分类" min-width="120"><template #default="{ row }">{{ row.category?.name || '-'
@@ -117,8 +133,9 @@ onMounted(() => { loadCategories(); loadItems() })
       layout="total, sizes, prev, pager, next" @current-change="loadItems" @size-change="search" />
   </el-card>
 
-  <el-dialog v-model="dialogVisible" :title="editingId ? '编辑器材' : '新增器材'" width="520px">
-    <el-form label-width="90px">
+  <el-dialog v-model="dialogVisible" :title="editingId ? '编辑器材' : '新增器材'" width="min(520px, 92vw)" :close-on-click-modal="!saving" :show-close="!saving">
+    <el-alert v-if="formError" :title="formError" type="error" class="message" />
+    <el-form label-width="90px" :disabled="saving">
       <el-form-item label="名称" required><el-input v-model="form.name" /></el-form-item>
       <el-form-item label="分类" required><el-select v-model="form.category_id" placeholder="请选择分类"
           style="width: 100%"><el-option v-for="category in categories" :key="category.id" :label="category.name"
@@ -126,7 +143,7 @@ onMounted(() => { loadCategories(); loadItems() })
       <el-form-item label="总库存" required><el-input-number v-model="form.total_stock" :min="0" /></el-form-item>
       <el-form-item label="描述"><el-input v-model="form.description" type="textarea" /></el-form-item>
     </el-form>
-    <template #footer><el-button @click="dialogVisible = false">取消</el-button><el-button type="primary"
+    <template #footer><el-button :disabled="saving" @click="dialogVisible = false">取消</el-button><el-button type="primary"
         :loading="saving" @click="save">保存</el-button></template>
   </el-dialog>
 

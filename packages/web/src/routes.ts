@@ -10,6 +10,15 @@ const routes: RouteRecordRaw[] = [
     },
 
     {
+        path: '/account',
+        component: () => import('./components/Account.vue')
+    },
+    {
+        path: '/users',
+        component: () => import('./components/Users.vue'),
+        meta: { admin: true }
+    },
+    {
         path: '/',
         component: () => import('./components/Dashboard.vue')
     },

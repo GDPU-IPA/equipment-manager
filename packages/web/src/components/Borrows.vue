@@ -18,7 +18,7 @@
       <el-form-item><el-button type="primary" @click="search">查询</el-button></el-form-item>
     </el-form>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
-    <el-table v-loading="loading" :data="records" stripe>
+    <el-table v-loading="loading" :data="records" stripe empty-text="暂无借用记录">
       <el-table-column prop="id" label="明细编号" width="100" />
       <el-table-column prop="order_id" label="订单编号" width="100" />
       <el-table-column prop="item.name" label="器材名称" min-width="160" />
@@ -86,6 +86,8 @@ async function loadRecords() {
     total.value = data.data.total
   } catch (reason) {
     error.value = errorMessage(reason)
+    records.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
