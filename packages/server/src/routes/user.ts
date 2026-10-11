@@ -5,7 +5,7 @@ import type { Prisma as PrismaTypes } from '../db.js';
 import { prisma } from '../db.js';
 import { requireAdmin } from '../auth/require-auth.js';
 import type { AuthenticatedRequest } from '../auth/require-auth.js';
-import { hashPassword, verifyPassword } from '../auth/password.js';
+import { hashPassword, isStrongPassword, verifyPassword } from '../auth/password.js';
 
 const router: Router = Router();
 
@@ -18,16 +18,6 @@ const userSelect = {
   created_at: true,
   updated_at: true,
 } satisfies PrismaTypes.UserSelect;
-
-function isStrongPassword(value: unknown): value is string {
-  return typeof value === 'string'
-    && value.length >= 8
-    && value.length <= 128
-    && /[a-z]/.test(value)
-    && /[A-Z]/.test(value)
-    && /\d/.test(value)
-    && /[^A-Za-z0-9]/.test(value);
-}
 
 function isProfile(value: unknown): value is Record<string, string> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;

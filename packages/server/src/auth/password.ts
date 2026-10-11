@@ -1,5 +1,15 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 
+export function isStrongPassword(value: unknown): value is string {
+  return typeof value === 'string'
+    && value.length >= 8
+    && value.length <= 128
+    && /[a-z]/.test(value)
+    && /[A-Z]/.test(value)
+    && /\d/.test(value)
+    && /[^A-Za-z0-9]/.test(value);
+}
+
 function deriveKey(password: string, salt: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     scrypt(password, salt, 64, (error, key) => {
