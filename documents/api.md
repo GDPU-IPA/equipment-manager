@@ -17,13 +17,13 @@
 
 | 功能 | 请求方法 | URL | 说明 |
 | :--- | :--- | :--- | :--- |
-| 注册 | POST | `/api/users` | 注册账号（默认角色为 `student` 或 `user`） |
+| 注册 | POST | `/api/user` | 注册账号（默认角色为 `student` 或 `user`） |
 | 登录 | POST | `/api/session` | 验证账号密码，返回 Token |
-| 登出 | POST | `/api/sessions/current` | 清除当前 Token（服务端配合黑名单） |
-| 当前用户信息 | GET | `/api/users/me` | 返回当前登录用户详细信息 |
-| 修改密码 | POST | `/api/users/me/password` | 用户修改自己的密码 |
-| 重置密码(管理员)| POST | `/api/users/{id}/password`| 管理员重置指定用户的密码 |
-| 用户列表 | GET | `/api/users` | 管理员获取用户列表（支持分页/角色/状态筛选） |
+| 登出 | DELETE | `/api/session` | 清除当前 Token（服务端配合黑名单） |
+| 当前用户信息 | GET | `/api/session/me` | 返回当前登录用户详细信息 |
+| 修改密码 | POST | `/api/user/me/password` | 用户修改自己的密码 |
+| 重置密码(管理员)| POST | `/api/user/{id}/password`| 管理员重置指定用户的密码 |
+| 用户列表 | GET | `/api/user/users` | 管理员获取用户列表（支持分页/角色/状态筛选） |
 
 ### 1. 注册
 | 字段 | 类型 | 必填 | 说明 | 示例 |

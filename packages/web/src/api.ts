@@ -14,6 +14,18 @@ export interface PageData<T> {
 }
 
 export const api = axios.create({ baseURL: '/api', timeout: 10000 })
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+api.interceptors.response.use(response => {
+  const code = response.data?.code
+  if (typeof code === 'number' && (code < 200 || code >= 300)) {
+    throw new Error(response.data.msg || '请求失败')
+  }
+  return response
+})
 
 export function errorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {

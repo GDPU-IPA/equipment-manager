@@ -1,4 +1,20 @@
-:root {}
+:root { font-family: "Microsoft YaHei", sans-serif; color: #303133; background: #f5f7fa; }
+* { box-sizing: border-box; }
+.el-container { min-height: 100vh; }
+.el-main { min-width: 0; }
+.el-aside { background: white; border-right: 1px solid #e4e7ed; }
+.el-menu { border-right: none !important; }
+.app-header { background: white; border-radius: 12px; margin-bottom: 20px; }
+.header, .card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.message { margin-bottom: 16px; }
+.el-pagination { margin-top: 20px; overflow-x: auto; }
+.el-card { border-radius: 12px !important; }
+@media (max-width: 640px) {
+  #sidebar { width: 120px !important; }
+  #sidebar h2 { font-size: 16px; overflow-wrap: anywhere; }
+  .el-main { padding: 12px !important; }
+  .el-pagination { justify-content: flex-start; }
+}
 
 
 html,
