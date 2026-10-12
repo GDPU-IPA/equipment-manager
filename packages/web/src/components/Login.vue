@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, errorMessage, type ApiResponse } from '../api'
 
 interface SessionData {
+  token: string
   role: string
 }
 
@@ -12,54 +13,22 @@ const username = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
-const mode = ref<'login' | 'register'>('login')
-const confirmPassword = ref('')
-const success = ref('')
-
-watch(mode, () => {
-  password.value = ''
-  confirmPassword.value = ''
-  error.value = ''
-  success.value = ''
-}, { flush: 'sync' })
 
 async function login() {
-  if (loading.value) return
   if (!username.value.trim() || !password.value) {
     error.value = '请输入用户名和密码'
     return
   }
 
-  if (mode.value === 'register' && password.value.length < 6) {
-    error.value = '密码长度不能少于6位'
-    return
-  }
-  if (mode.value === 'register' && password.value !== confirmPassword.value) {
-    error.value = '两次输入的密码不一致'
-    return
-  }
-
   loading.value = true
   error.value = ''
-  success.value = ''
   try {
-    const credentials = {
+    const { data } = await api.post<ApiResponse<SessionData>>('/session', {
       username: username.value.trim(),
       password: password.value,
-    }
-    if (mode.value === 'register') {
-      const { data } = await api.post<ApiResponse<unknown>>('/user', credentials)
-      if (data.code !== 200) throw new Error(data.msg || '注册失败')
-      mode.value = 'login'
-      success.value = '注册成功，请登录'
-      return
-    }
-    const { data } = await api.post<ApiResponse<SessionData> & { token: string }>('/session', credentials)
-    if (data.code !== 200) throw new Error(data.msg || '登录失败')
-    if (typeof data.token !== 'string' || !data.token) throw new Error('登录响应缺少有效凭证')
-    localStorage.setItem('token', data.token)
+    })
+    localStorage.setItem('token', data.data.token)
     localStorage.setItem('role', data.data.role)
-    localStorage.setItem('username', username.value.trim())
     await router.replace('/')
   } catch (reason) {
     error.value = errorMessage(reason)
@@ -71,36 +40,24 @@ async function login() {
 
 <template>
   <main class="login-page">
-    <!-- <el-card id="slogan">
-      <h1>广东药科大学</h1>
-      <h1>创新实践协会器材管理系统</h1>
-    </el-card> -->
     <el-card class="login-card" shadow="never">
-      <template #header><strong>{{ mode === 'login' ? '登录' : '注册' }}</strong></template>
-      <el-alert v-if="success" :title="success" type="success" show-icon :closable="false" class="login-error" />
+      <template #header><strong>登录</strong></template>
       <el-alert v-if="error" :title="error" type="error" show-icon class="login-error" />
       <el-form label-position="top" @submit.prevent="login">
         <el-form-item label="用户名">
-          <el-input v-model="username" :disabled="loading" autocomplete="username" placeholder="请输入用户名" />
+          <el-input v-model="username" autocomplete="username" placeholder="请输入用户名" />
         </el-form-item>
         <el-form-item label="密码">
           <el-input
             v-model="password"
             type="password"
-            :disabled="loading"
-            :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-            :placeholder="mode === 'login' ? '请输入密码' : '请输入至少6位密码'"
+            autocomplete="current-password"
+            placeholder="请输入密码"
             show-password
           />
         </el-form-item>
-        <el-form-item v-if="mode === 'register'" label="确认密码">
-          <el-input v-model="confirmPassword" :disabled="loading" type="password" autocomplete="new-password" placeholder="请再次输入密码" show-password />
-        </el-form-item>
         <el-button class="login-button" type="primary" native-type="submit" :loading="loading">
-          {{ mode === 'login' ? '登录' : '注册' }}
-        </el-button>
-        <el-button class="switch-button" link type="primary" :disabled="loading" @click="mode = mode === 'login' ? 'register' : 'login'">
-          {{ mode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录' }}
+          登录
         </el-button>
       </el-form>
     </el-card>
@@ -108,14 +65,6 @@ async function login() {
 </template>
 
 <style scoped>
-#slogan{
-  justify-content: center;
-  text-align: center;
-  /* margin-bottom: 12px; */
-  /* padding: 12px; */
-  /* background-color: aqua; */
-}
-
 .login-page {
   display: grid;
   min-height: 100vh;
@@ -134,5 +83,4 @@ async function login() {
 .login-button {
   width: 100%;
 }
-.switch-button { margin-top: 16px; }
 </style>
