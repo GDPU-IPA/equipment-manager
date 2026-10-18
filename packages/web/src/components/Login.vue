@@ -2,8 +2,10 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, errorMessage, type ApiResponse } from '../api'
+import { isStrongPassword, passwordRule } from '../password'
 
 interface SessionData {
+  token: string
   role: string
 }
 
@@ -38,6 +40,10 @@ async function login() {
     error.value = '两次输入的密码不一致'
     return
   }
+  if (mode.value === 'register' && !isStrongPassword(password.value)) {
+    error.value = passwordRule
+    return
+  }
 
   loading.value = true
   error.value = ''
@@ -48,17 +54,19 @@ async function login() {
       password: password.value,
     }
     if (mode.value === 'register') {
-      const { data } = await api.post<ApiResponse<unknown>>('/user', credentials)
-      if (data.code !== 200) throw new Error(data.msg || '注册失败')
+      const registration = { ...credentials, profile: { name: credentials.username } }
+      const { data } = await api.post<ApiResponse<unknown>>('/users', registration)
+      if (data.code !== 201) throw new Error(data.msg || '注册失败')
       mode.value = 'login'
       success.value = '注册成功，请登录'
       return
     }
-    const { data } = await api.post<ApiResponse<SessionData> & { token: string }>('/session', credentials)
+    const { data } = await api.post<ApiResponse<SessionData>>('/session', credentials)
     if (data.code !== 200) throw new Error(data.msg || '登录失败')
-    if (typeof data.token !== 'string' || !data.token) throw new Error('登录响应缺少有效凭证')
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('role', data.data.role)
+    const session = data.data
+    if (typeof session?.token !== 'string' || !session.token) throw new Error('登录响应缺少有效凭证')
+    localStorage.setItem('token', session.token)
+    localStorage.setItem('role', session.role)
     localStorage.setItem('username', username.value.trim())
     await router.replace('/')
   } catch (reason) {

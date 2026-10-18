@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api, errorMessage, type ApiResponse, type PageData } from '../api'
+import { isStrongPassword, passwordRule } from '../password'
 
 interface UserRecord {
   id: number
@@ -55,9 +56,13 @@ async function resetPassword() {
     resetError.value = '新密码至少6位，且两次输入须一致'
     return
   }
+  if (!isStrongPassword(newPassword.value)) {
+    resetError.value = passwordRule
+    return
+  }
   saving.value = true
   try {
-    await api.post(`/user/${resetting.value.id}/password`, { newPassword: newPassword.value })
+    await api.post(`/user/${resetting.value.id}/password`, { new_pwd: newPassword.value })
     dialogVisible.value = false
     newPassword.value = confirmation.value = ''
     success.value = `已修改 ${resetting.value.username} 的密码`
@@ -78,7 +83,7 @@ async function loadUsers() {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await api.get<ApiResponse<PageData<UserRecord>>>('/user/users', {
+    const { data } = await api.get<ApiResponse<PageData<UserRecord>>>('/user', {
       params: { page: page.value, pageSize: pageSize.value, role: role.value || undefined, status: status.value },
     })
     users.value = data.data.list

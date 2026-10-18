@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { api, errorMessage, type ApiResponse } from '../api'
 import { currentUser, type CurrentUser } from '../session'
+import { isStrongPassword, passwordRule } from '../password'
 const account = ref({ username: '', name: '', email: '', phone: '' })
 const profileSaving = ref(false)
 const profileError = ref('')
@@ -49,9 +50,13 @@ async function save() {
     error.value = '两次输入的新密码不一致'
     return
   }
+  if (!isStrongPassword(newPassword.value)) {
+    error.value = passwordRule
+    return
+  }
   saving.value = true
   try {
-    await api.patch('/user/me/password', { oldPassword: oldPassword.value, newPassword: newPassword.value })
+    await api.post('/user/me/password', { old_pwd: oldPassword.value, new_pwd: newPassword.value })
     oldPassword.value = newPassword.value = confirmation.value = ''
     success.value = '密码修改成功'
   } catch (reason) { error.value = errorMessage(reason) }
@@ -61,7 +66,6 @@ async function save() {
 <template>
   <el-card shadow="never">
 
-20
     <template #header><strong>账号信息</strong></template>
     <el-descriptions v-if="currentUser" :column="1" border>
       <el-descriptions-item label="用户名">{{ currentUser.username }}</el-descriptions-item>

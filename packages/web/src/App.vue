@@ -24,7 +24,7 @@ async function logout() {
   loggingOut.value = true
   logoutError.value = ''
   try {
-    await api.delete('/session')
+    await api.post('/sessions/current')
     clearSession()
     await router.replace('/login')
   } catch (reason) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api, errorMessage, type ApiResponse, type PageData } from '../api'
+import { currentUser } from '../session'
 
 const equipmentTotal = ref(0)
 const borrowTotal = ref(0)
@@ -13,16 +14,20 @@ async function loadSummary() {
   loading.value = true
   error.value = ''
   try {
-    const [equipments, borrows, users, categories] = await Promise.all([
+    const [equipments, borrows, categories] = await Promise.all([
       api.get<ApiResponse<PageData<unknown>>>('/equipments', { params: { pageSize: 1 } }),
       api.get<ApiResponse<PageData<unknown>>>('/borrows', { params: { pageSize: 1 } }),
-      api.get<ApiResponse<PageData<unknown>>>('/user/users', { params: { pageSize: 1 } }),
       api.get<ApiResponse<unknown[]>>('/categories'),
     ])
     equipmentTotal.value = equipments.data.data.total
     borrowTotal.value = borrows.data.data.total
-    userTotal.value = users.data.data.total
     categoryTotal.value = categories.data.data.length
+    if (currentUser.value?.role === 'admin') {
+      const users = await api.get<ApiResponse<PageData<unknown>>>('/user', { params: { pageSize: 1 } })
+      userTotal.value = users.data.data.total
+    } else {
+      userTotal.value = 0
+    }
   } catch (reason) { error.value = errorMessage(reason) }
   finally { loading.value = false }
 }
@@ -39,7 +44,7 @@ onMounted(loadSummary)
             :value="equipmentTotal" /></el-card></el-col>
       <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="借用明细"
             :value="borrowTotal" /></el-card></el-col>
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="用户数量"
+      <el-col v-if="currentUser?.role === 'admin'" :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="用户数量"
             :value="userTotal" /></el-card></el-col>
       <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="启用分类"
             :value="categoryTotal" /></el-card></el-col>

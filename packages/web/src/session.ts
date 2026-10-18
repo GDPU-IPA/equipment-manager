@@ -16,7 +16,7 @@ export function clearSession() {
   for (const key of ['token', 'role', 'username']) localStorage.removeItem(key)
 }
 export async function loadCurrentUser() {
-  const { data } = await api.get<ApiResponse<CurrentUser>>('/session/me')
+  const { data } = await api.get<ApiResponse<CurrentUser>>('/user/me')
   currentUser.value = data.data
   localStorage.setItem('username', data.data.username)
   localStorage.setItem('role', data.data.role)
