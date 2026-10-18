@@ -17,6 +17,8 @@ apiRouter.use('/categories', categoryRouter);
 apiRouter.use('/borrows', borrowRouter);
 apiRouter.use('/return-records', returnRecordRouter);
 apiRouter.use('/equipments', equipmentRouter);
-apiRouter.use('/users', userRouter);
+apiRouter.use('/user', userRouter);
+apiRouter.use('/session', sessionRouter);
+
 
 export default apiRouter;
