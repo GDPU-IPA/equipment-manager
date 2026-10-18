@@ -11,7 +11,7 @@ import axios from 'axios'
 const displayName = computed(() => {
   const profile = currentUser.value?.profile
   if (profile && typeof profile === 'object' && 'name' in profile &&
-      typeof profile.name === 'string' && profile.name.trim()) {
+    typeof profile.name === 'string' && profile.name.trim()) {
     return profile.name.trim()
   }
   return currentUser.value?.username || '用户'

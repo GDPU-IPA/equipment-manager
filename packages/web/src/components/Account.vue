@@ -60,31 +60,50 @@ async function save() {
 </script>
 <template>
   <el-card shadow="never">
+
+20
     <template #header><strong>账号信息</strong></template>
     <el-descriptions v-if="currentUser" :column="1" border>
       <el-descriptions-item label="用户名">{{ currentUser.username }}</el-descriptions-item>
       <el-descriptions-item label="角色">{{ currentUser.role === 'admin' ? '管理员' : '普通用户' }}</el-descriptions-item>
-      <el-descriptions-item label="注册时间">{{ new Date(currentUser.created_at).toLocaleString('zh-CN') }}</el-descriptions-item>
+      <el-descriptions-item label="注册时间">{{ new Date(currentUser.created_at).toLocaleString('zh-CN')
+        }}</el-descriptions-item>
     </el-descriptions>
+
+
     <h3>编辑账号信息</h3>
     <el-alert v-if="profileError" :title="profileError" type="error" show-icon class="message" />
     <el-alert v-if="profileSuccess" :title="profileSuccess" type="success" show-icon class="message" />
     <el-form class="password-form" label-position="top" :disabled="profileSaving" @submit.prevent="saveAccount">
-      <el-form-item label="用户名" required><el-input v-model="account.username" maxlength="50" autocomplete="username" /></el-form-item>
+      <el-form-item label="用户名" required><el-input v-model="account.username" maxlength="50"
+          autocomplete="username" /></el-form-item>
       <el-form-item label="姓名"><el-input v-model="account.name" maxlength="50" autocomplete="name" /></el-form-item>
       <el-form-item label="邮箱"><el-input v-model="account.email" maxlength="254" autocomplete="email" /></el-form-item>
       <el-form-item label="联系电话"><el-input v-model="account.phone" maxlength="30" autocomplete="tel" /></el-form-item>
       <el-button type="primary" native-type="submit" :loading="profileSaving">保存账号信息</el-button>
     </el-form>
+
+
     <h3>修改密码</h3>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
     <el-alert v-if="success" :title="success" type="success" show-icon class="message" />
     <el-form class="password-form" label-position="top" :disabled="saving" @submit.prevent="save">
-      <el-form-item label="旧密码"><el-input v-model="oldPassword" type="password" show-password autocomplete="current-password" /></el-form-item>
-      <el-form-item label="新密码"><el-input v-model="newPassword" type="password" show-password autocomplete="new-password" placeholder="至少6位" /></el-form-item>
-      <el-form-item label="确认新密码"><el-input v-model="confirmation" type="password" show-password autocomplete="new-password" /></el-form-item>
+      <el-form-item label="旧密码"><el-input v-model="oldPassword" type="password" show-password
+          autocomplete="current-password" /></el-form-item>
+      <el-form-item label="新密码"><el-input v-model="newPassword" type="password" show-password
+          autocomplete="new-password" placeholder="至少6位" /></el-form-item>
+      <el-form-item label="确认新密码"><el-input v-model="confirmation" type="password" show-password
+          autocomplete="new-password" /></el-form-item>
       <el-button type="primary" native-type="submit" :loading="saving">保存密码</el-button>
     </el-form>
+
+
   </el-card>
 </template>
-<style scoped>.password-form { max-width: 420px; }</style>
+
+
+<style scoped>
+.password-form {
+  max-width: 420px;
+}
+</style>
