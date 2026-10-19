@@ -79,6 +79,52 @@ router.get('/me', async (req: Request, res: Response) => {
   res.json({ code: 200, msg: 'success', data: user });
 });
 
+router.patch('/me', async (req: Request, res: Response) => {
+  const userId = Number((req as AuthenticatedRequest).user.sub);
+  const { username, name, email, phone } = req.body ?? {};
+  const normalizedUsername = typeof username === 'string' ? username.trim() : '';
+  const normalizedName = typeof name === 'string' ? name.trim() : '';
+
+  if (!normalizedUsername || normalizedUsername.length > 50) {
+    res.status(400).json({ code: 400, msg: 'username_is_required_or_too_long', data: null });
+    return;
+  }
+  if (!normalizedName || normalizedName.length > 50) {
+    res.status(400).json({ code: 400, msg: 'name_is_required_or_too_long', data: null });
+    return;
+  }
+  if (email != null && (typeof email !== 'string' || email.length > 254)) {
+    res.status(400).json({ code: 400, msg: 'invalid_email', data: null });
+    return;
+  }
+  if (phone != null && (typeof phone !== 'string' || phone.length > 30)) {
+    res.status(400).json({ code: 400, msg: 'invalid_phone', data: null });
+    return;
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: normalizedUsername,
+        profile: {
+          name: normalizedName,
+          email: typeof email === 'string' ? email.trim() : '',
+          phone: typeof phone === 'string' ? phone.trim() : '',
+        },
+      },
+      select: userSelect,
+    });
+    res.json({ code: 200, msg: 'success', data: user });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      res.status(409).json({ code: 409, msg: 'username_already_exists', data: null });
+      return;
+    }
+    throw error;
+  }
+});
+
 router.post('/me/password', async (req: Request, res: Response) => {
   const userId = Number((req as AuthenticatedRequest).user.sub);
   const { old_pwd: oldPassword, new_pwd: newPassword } = req.body ?? {};
@@ -127,6 +173,7 @@ router.post('/:id/password', requireAdmin, async (req: Request, res: Response) =
   res.json({ code: 200, msg: 'success', data: null });
 });
 
+<<<<<<< HEAD
 router.patch('/:id/profile', requireAdmin, async (req: Request, res: Response) => {
   const id = parseId(req.params.id);
   const profile = req.body?.profile;
@@ -152,20 +199,38 @@ router.patch('/:id/profile', requireAdmin, async (req: Request, res: Response) =
 router.patch('/:id/role', requireAdmin, async (req: Request, res: Response) => {
   const id = parseId(req.params.id);
   const role = req.body?.role;
+=======
+router.patch('/:id/role', requireAdmin, async (req: Request, res: Response) => {
+  const id = parseId(req.params.id);
+  const role = typeof req.body?.role === 'string' ? req.body.role.trim() : '';
+>>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
   if (id === null) {
     res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
     return;
   }
+<<<<<<< HEAD
   if (role !== 'admin' && role !== 'user') {
     res.status(400).json({ code: 400, msg: 'role_must_be_admin_or_user', data: null });
     return;
   }
+=======
+  if (role !== 'user' && role !== 'admin') {
+    res.status(400).json({ code: 400, msg: 'invalid_role', data: null });
+    return;
+  }
+
+>>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
   const result = await prisma.user.updateMany({ where: { id }, data: { role } });
   if (result.count === 0) {
     res.status(404).json({ code: 404, msg: 'user_not_found', data: null });
     return;
   }
+<<<<<<< HEAD
   res.json({ code: 200, msg: 'success', data: { id, role } });
+=======
+  const user = await prisma.user.findUnique({ where: { id }, select: userSelect });
+  res.json({ code: 200, msg: 'success', data: user });
+>>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
 });
 
 router.get('/', requireAdmin, async (req: Request, res: Response) => {

@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, errorMessage, type ApiResponse } from '../api'
+import { isStrongPassword, passwordRule } from '../password'
 
 interface SessionData {
   token: string
@@ -44,6 +45,10 @@ async function login() {
     error.value = '两次输入的密码不一致'
     return
   }
+  if (mode.value === 'register' && !isStrongPassword(password.value)) {
+    error.value = passwordRule
+    return
+  }
 
   loading.value = true
   error.value = ''
@@ -54,10 +59,15 @@ async function login() {
       password: password.value,
     }
     if (mode.value === 'register') {
+<<<<<<< HEAD
       const { data } = await api.post<ApiResponse<unknown>>('/users', {
         ...credentials,
         profile: { name: name.value.trim() },
       })
+=======
+      const registration = { ...credentials, profile: { name: credentials.username } }
+      const { data } = await api.post<ApiResponse<unknown>>('/users', registration)
+>>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
       if (data.code !== 201) throw new Error(data.msg || '注册失败')
       mode.value = 'login'
       success.value = '注册成功，请登录'

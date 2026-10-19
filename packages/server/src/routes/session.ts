@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
 import { prisma } from '../db.js';
-import { verifyPassword } from '../auth/password.js';
+import { hashPassword, needsPasswordRehash, verifyPassword } from '../auth/password.js';
 import { revokeToken, signToken } from '../auth/token.js';
 import type { AuthenticatedRequest } from '../auth/require-auth.js';
 
@@ -20,6 +20,13 @@ router.post('/', async (req: Request, res: Response) => {
   if (!user || user.status !== 1 || !(await verifyPassword(password, user.password_hash))) {
     res.status(401).json({ code: 401, msg: '用户名或密码错误', data: null });
     return;
+  }
+
+  if (needsPasswordRehash(user.password_hash)) {
+    await prisma.user.updateMany({
+      where: { id: user.id, password_hash: user.password_hash },
+      data: { password_hash: await hashPassword(password) },
+    });
   }
 
   res.json({

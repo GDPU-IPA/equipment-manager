@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hashPassword, isStrongPassword, verifyPassword } from './password.js';
+import bcrypt from 'bcrypt';
+import { hashPassword, isStrongPassword, needsPasswordRehash, verifyPassword } from './password.js';
 
 test('password validation only requires more than six characters', () => {
   assert.equal(isStrongPassword('StrongPass@123'), true);
@@ -26,4 +27,17 @@ test('password helper resolves its TypeScript module and verifies hashed passwor
 
 test('malformed password hashes are rejected', async () => {
   assert.equal(await verifyPassword('TestPass@123', 'invalid-hash'), false);
+});
+
+test('legacy bcrypt hashes remain login-compatible and are marked for rehash', async () => {
+  const password = 'TestPass@123';
+  const hash = await bcrypt.hash(password, 10);
+
+  assert.equal(needsPasswordRehash(hash), true);
+  assert.equal(await verifyPassword(password, hash), true);
+  assert.equal(await verifyPassword('WrongPass@123', hash), false);
+});
+
+test('current scrypt hashes do not need rehashing', async () => {
+  assert.equal(needsPasswordRehash(await hashPassword('TestPass@123')), false);
 });

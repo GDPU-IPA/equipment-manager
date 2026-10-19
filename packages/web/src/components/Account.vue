@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { api, errorMessage, type ApiResponse } from '../api'
 import { currentUser, type CurrentUser } from '../session'
+import { isStrongPassword, passwordRule } from '../password'
 const account = ref({ username: '', name: '', email: '', phone: '' })
 const profileSaving = ref(false)
 const profileError = ref('')
@@ -47,6 +48,10 @@ async function save() {
   }
   if (newPassword.value !== confirmation.value) {
     error.value = '两次输入的新密码不一致'
+    return
+  }
+  if (!isStrongPassword(newPassword.value)) {
+    error.value = passwordRule
     return
   }
   saving.value = true

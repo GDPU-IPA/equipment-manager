@@ -1,4 +1,13 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import bcrypt from 'bcrypt';
+
+function isLegacyBcryptHash(storedHash: string): boolean {
+  return /^\$2[aby]\$/.test(storedHash);
+}
+
+export function needsPasswordRehash(storedHash: string): boolean {
+  return isLegacyBcryptHash(storedHash);
+}
 
 export function isStrongPassword(value: unknown): value is string {
   return typeof value === 'string'
@@ -26,6 +35,10 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  if (isLegacyBcryptHash(storedHash)) {
+    return bcrypt.compare(password, storedHash);
+  }
+
   const [algorithm, salt, keyHex] = storedHash.split('$');
   if (algorithm !== 'scrypt' || !salt || !keyHex || !/^[\da-f]+$/i.test(keyHex)) return false;
 

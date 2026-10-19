@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api, errorMessage, type ApiResponse, type PageData } from '../api'
+import { isStrongPassword, passwordRule } from '../password'
 
 interface UserRecord {
   id: number
@@ -82,6 +83,10 @@ async function resetPassword() {
   resetError.value = ''
   if (newPassword.value.length <= 6 || newPassword.value !== confirmation.value) {
     resetError.value = '新密码必须不少于6位，且两次输入须一致'
+    return
+  }
+  if (!isStrongPassword(newPassword.value)) {
+    resetError.value = passwordRule
     return
   }
   saving.value = true
