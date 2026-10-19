@@ -2,14 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { hashPassword, isStrongPassword, verifyPassword } from './password.js';
 
-test('password strength validation enforces the documented rules', () => {
+test('password validation only requires more than six characters', () => {
   assert.equal(isStrongPassword('StrongPass@123'), true);
   assert.equal(isStrongPassword('shortA1!'), true);
-  assert.equal(isStrongPassword('lowercase1!'), false);
-  assert.equal(isStrongPassword('UPPERCASE1!'), false);
-  assert.equal(isStrongPassword('nonumber!'), false);
-  assert.equal(isStrongPassword('NoSymbol123'), false);
-  assert.equal(isStrongPassword(`Aa1!${'x'.repeat(125)}`), false);
+  assert.equal(isStrongPassword('123456'), false);
+  assert.equal(isStrongPassword('1234567'), true);
+  assert.equal(isStrongPassword('abcdefg'), true);
+  assert.equal(isStrongPassword('ABCDEFG'), true);
+  assert.equal(isStrongPassword(''), false);
+  assert.equal(isStrongPassword('x'.repeat(129)), true);
+  assert.equal(isStrongPassword(1234567), false);
   assert.equal(isStrongPassword(null), false);
 });
 

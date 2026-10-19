@@ -4,11 +4,13 @@ import { useRouter } from 'vue-router'
 import { api, errorMessage, type ApiResponse } from '../api'
 
 interface SessionData {
+  token: string
   role: string
 }
 
 const router = useRouter()
 const username = ref('')
+const name = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -30,8 +32,12 @@ async function login() {
     return
   }
 
+  if (mode.value === 'register' && !name.value.trim()) {
+    error.value = '请输入姓名'
+    return
+  }
   if (mode.value === 'register' && password.value.length < 6) {
-    error.value = '密码长度不能少于6位'
+    error.value = '密码长度必须不少于6位'
     return
   }
   if (mode.value === 'register' && password.value !== confirmPassword.value) {
@@ -48,17 +54,21 @@ async function login() {
       password: password.value,
     }
     if (mode.value === 'register') {
-      const { data } = await api.post<ApiResponse<unknown>>('/user', credentials)
-      if (data.code !== 200) throw new Error(data.msg || '注册失败')
+      const { data } = await api.post<ApiResponse<unknown>>('/users', {
+        ...credentials,
+        profile: { name: name.value.trim() },
+      })
+      if (data.code !== 201) throw new Error(data.msg || '注册失败')
       mode.value = 'login'
       success.value = '注册成功，请登录'
       return
     }
-    const { data } = await api.post<ApiResponse<SessionData> & { token: string }>('/session', credentials)
+    const { data } = await api.post<ApiResponse<SessionData>>('/session', credentials)
     if (data.code !== 200) throw new Error(data.msg || '登录失败')
-    if (typeof data.token !== 'string' || !data.token) throw new Error('登录响应缺少有效凭证')
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('role', data.data.role)
+    const session = data.data
+    if (typeof session?.token !== 'string' || !session.token) throw new Error('登录响应缺少有效凭证')
+    localStorage.setItem('token', session.token)
+    localStorage.setItem('role', session.role)
     localStorage.setItem('username', username.value.trim())
     await router.replace('/')
   } catch (reason) {
@@ -80,8 +90,11 @@ async function login() {
       <el-alert v-if="success" :title="success" type="success" show-icon :closable="false" class="login-error" />
       <el-alert v-if="error" :title="error" type="error" show-icon class="login-error" />
       <el-form label-position="top" @submit.prevent="login">
-        <el-form-item label="用户名">
+        <el-form-item label="学号/工号">
           <el-input v-model="username" :disabled="loading" autocomplete="username" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item v-if="mode === 'register'" label="姓名">
+          <el-input v-model="name" :disabled="loading" autocomplete="name" placeholder="请输入姓名" />
         </el-form-item>
         <el-form-item label="密码">
           <el-input

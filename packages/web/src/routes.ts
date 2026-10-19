@@ -24,7 +24,8 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: '/item',
-        component: () => import('./components/Items.vue')
+        component: () => import('./components/Items.vue'),
+        meta: { admin: true }
     },
     {
         path: '/borrows',

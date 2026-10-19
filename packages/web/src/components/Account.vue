@@ -42,7 +42,7 @@ async function save() {
   if (saving.value) return
   error.value = success.value = ''
   if (!oldPassword.value || newPassword.value.length < 6) {
-    error.value = '请输入旧密码，新密码至少6位'
+    error.value = '请输入旧密码，新密码必须不少于6位'
     return
   }
   if (newPassword.value !== confirmation.value) {
@@ -51,7 +51,7 @@ async function save() {
   }
   saving.value = true
   try {
-    await api.patch('/user/me/password', { oldPassword: oldPassword.value, newPassword: newPassword.value })
+    await api.post('/user/me/password', { old_pwd: oldPassword.value, new_pwd: newPassword.value })
     oldPassword.value = newPassword.value = confirmation.value = ''
     success.value = '密码修改成功'
   } catch (reason) { error.value = errorMessage(reason) }
@@ -61,7 +61,6 @@ async function save() {
 <template>
   <el-card shadow="never">
 
-20
     <template #header><strong>账号信息</strong></template>
     <el-descriptions v-if="currentUser" :column="1" border>
       <el-descriptions-item label="用户名">{{ currentUser.username }}</el-descriptions-item>

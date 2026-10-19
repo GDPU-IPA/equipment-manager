@@ -24,7 +24,7 @@ async function logout() {
   loggingOut.value = true
   logoutError.value = ''
   try {
-    await api.delete('/session')
+    await api.post('/sessions/current')
     clearSession()
     await router.replace('/login')
   } catch (reason) {
@@ -51,7 +51,7 @@ async function logout() {
       </div>
       <el-menu router :default-active="$route.path">
         <el-menu-item index="/">工作台</el-menu-item>
-        <el-menu-item index="/item">设备中心</el-menu-item>
+        <el-menu-item v-if="currentUser?.role === 'admin'" index="/item">设备中心</el-menu-item>
         <el-menu-item index="/borrows">借用记录</el-menu-item>
         <el-menu-item index="/categories">器材分类</el-menu-item>
         <el-menu-item v-if="currentUser?.role === 'admin'" index="/users">人员管理</el-menu-item>

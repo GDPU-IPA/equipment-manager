@@ -41,7 +41,7 @@ export async function registerUser(req: Request, res: Response) {
     return;
   }
   if (!isStrongPassword(password)) {
-    res.status(400).json({ code: 400, msg: 'password_must_include_uppercase_lowercase_number_and_symbol', data: null });
+    res.status(400).json({ code: 400, msg: '密码长度必须不少于6位', data: null });
     return;
   }
   if (!isProfile(profile)) {
@@ -54,7 +54,7 @@ export async function registerUser(req: Request, res: Response) {
       data: {
         username: normalizedUsername,
         password_hash: await hashPassword(password),
-        role: 'student',
+        role: 'user',
         profile: profile as Prisma.InputJsonValue,
       },
       select: userSelect,
@@ -83,7 +83,7 @@ router.post('/me/password', async (req: Request, res: Response) => {
   const userId = Number((req as AuthenticatedRequest).user.sub);
   const { old_pwd: oldPassword, new_pwd: newPassword } = req.body ?? {};
   if (!isStrongPassword(newPassword)) {
-    res.status(400).json({ code: 400, msg: 'password_must_include_uppercase_lowercase_number_and_symbol', data: null });
+    res.status(400).json({ code: 400, msg: '密码长度必须不少于6位', data: null });
     return;
   }
 
@@ -112,7 +112,7 @@ router.post('/:id/password', requireAdmin, async (req: Request, res: Response) =
     return;
   }
   if (!isStrongPassword(newPassword)) {
-    res.status(400).json({ code: 400, msg: 'password_must_include_uppercase_lowercase_number_and_symbol', data: null });
+    res.status(400).json({ code: 400, msg: '密码长度必须大于6位', data: null });
     return;
   }
 
@@ -125,6 +125,47 @@ router.post('/:id/password', requireAdmin, async (req: Request, res: Response) =
     return;
   }
   res.json({ code: 200, msg: 'success', data: null });
+});
+
+router.patch('/:id/profile', requireAdmin, async (req: Request, res: Response) => {
+  const id = parseId(req.params.id);
+  const profile = req.body?.profile;
+  if (id === null) {
+    res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
+    return;
+  }
+  if (!isProfile(profile)) {
+    res.status(400).json({ code: 400, msg: '姓名不能为空，用户信息各字段必须为字符串', data: null });
+    return;
+  }
+  const result = await prisma.user.updateMany({
+    where: { id },
+    data: { profile: { ...profile, name: profile.name!.trim() } as Prisma.InputJsonValue },
+  });
+  if (result.count === 0) {
+    res.status(404).json({ code: 404, msg: 'user_not_found', data: null });
+    return;
+  }
+  res.json({ code: 200, msg: 'success', data: null });
+});
+
+router.patch('/:id/role', requireAdmin, async (req: Request, res: Response) => {
+  const id = parseId(req.params.id);
+  const role = req.body?.role;
+  if (id === null) {
+    res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
+    return;
+  }
+  if (role !== 'admin' && role !== 'user') {
+    res.status(400).json({ code: 400, msg: 'role_must_be_admin_or_user', data: null });
+    return;
+  }
+  const result = await prisma.user.updateMany({ where: { id }, data: { role } });
+  if (result.count === 0) {
+    res.status(404).json({ code: 404, msg: 'user_not_found', data: null });
+    return;
+  }
+  res.json({ code: 200, msg: 'success', data: { id, role } });
 });
 
 router.get('/', requireAdmin, async (req: Request, res: Response) => {

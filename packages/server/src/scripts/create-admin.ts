@@ -12,7 +12,7 @@ async function main() {
     throw new Error('ADMIN_USERNAME is required and must be at most 50 characters.');
   }
   if (!isStrongPassword(password)) {
-    throw new Error('ADMIN_PASSWORD must be 8-128 characters and include uppercase, lowercase, a number, and a symbol.');
+    throw new Error('ADMIN_PASSWORD must be more than 6 characters.');
   }
   if (!name || name.length > 100) {
     throw new Error('ADMIN_NAME is required and must be at most 100 characters.');

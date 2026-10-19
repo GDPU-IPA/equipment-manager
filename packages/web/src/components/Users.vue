@@ -27,21 +27,50 @@ const confirmation = ref('')
 const saving = ref(false)
 const resetError = ref('')
 const success = ref('')
-const managementTab = ref<'password' | 'role'>('password')
+const managementTab = ref<'password' | 'role' | 'profile'>('password')
+const profileForm = ref<Record<string, string>>({ name: '', email: '', phone: '' })
+const profileLabels: Record<string, string> = { name: '姓名', email: '邮箱', phone: '联系电话' }
 const selectedRole = ref<'user' | 'admin'>('user')
 function openReset(user: UserRecord) {
   resetting.value = user
   newPassword.value = confirmation.value = resetError.value = ''
   managementTab.value = 'password'
   selectedRole.value = user.role === 'admin' ? 'admin' : 'user'
+  const profile = user.profile && typeof user.profile === 'object' && !Array.isArray(user.profile)
+    ? Object.fromEntries(Object.entries(user.profile).filter(([, value]) => typeof value === 'string'))
+    : {}
+  profileForm.value = { name: '', email: '', phone: '', ...profile }
   dialogVisible.value = true
+}
+async function updateProfile() {
+  if (saving.value || !resetting.value) return
+  resetError.value = ''
+  if (!profileForm.value.name?.trim()) {
+    resetError.value = '请输入姓名'
+    return
+  }
+  const email = profileForm.value.email?.trim()
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    resetError.value = '请输入正确的邮箱'
+    return
+  }
+  saving.value = true
+  try {
+    await api.patch(`/user/${resetting.value.id}/profile`, {
+      profile: { ...profileForm.value, name: profileForm.value.name.trim() },
+    })
+    success.value = `已修改 ${resetting.value.username} 的用户信息`
+    dialogVisible.value = false
+    await loadUsers()
+  } catch (reason) { resetError.value = errorMessage(reason) }
+  finally { saving.value = false }
 }
 async function updateRole() {
   if (saving.value || !resetting.value) return
   saving.value = true
   resetError.value = ''
   try {
-    await api.patch(`/user/${resetting.value.id}/role`, { role: selectedRole.value })
+    await api.patch(`/user/${resetting.value.id}/role`, { role: selectedRole.value === 'user' ? 'user' : 'admin' })
     success.value = `已修改 ${resetting.value.username} 的用户类型`
     dialogVisible.value = false
     await loadUsers()
@@ -51,13 +80,13 @@ async function updateRole() {
 async function resetPassword() {
   if (saving.value || !resetting.value) return
   resetError.value = ''
-  if (newPassword.value.length < 6 || newPassword.value !== confirmation.value) {
-    resetError.value = '新密码至少6位，且两次输入须一致'
+  if (newPassword.value.length <= 6 || newPassword.value !== confirmation.value) {
+    resetError.value = '新密码必须不少于6位，且两次输入须一致'
     return
   }
   saving.value = true
   try {
-    await api.post(`/user/${resetting.value.id}/password`, { newPassword: newPassword.value })
+    await api.post(`/user/${resetting.value.id}/password`, { new_pwd: newPassword.value })
     dialogVisible.value = false
     newPassword.value = confirmation.value = ''
     success.value = `已修改 ${resetting.value.username} 的密码`
@@ -78,7 +107,7 @@ async function loadUsers() {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await api.get<ApiResponse<PageData<UserRecord>>>('/user/users', {
+    const { data } = await api.get<ApiResponse<PageData<UserRecord>>>('/user', {
       params: { page: page.value, pageSize: pageSize.value, role: role.value || undefined, status: status.value },
     })
     users.value = data.data.list
@@ -147,6 +176,15 @@ onMounted(loadUsers)
   <el-dialog v-model="dialogVisible" :title="`管理 ${resetting?.username || ''}`" width="min(480px, 92vw)" :close-on-click-modal="!saving" :show-close="!saving">
     <el-alert v-if="resetError" :title="resetError" type="error" class="message" />
     <el-tabs v-model="managementTab">
+      <el-tab-pane label="修改用户信息" name="profile">
+        <el-form label-position="top" :disabled="saving" @submit.prevent="updateProfile">
+          <el-form-item v-for="(_, key) in profileForm" :key="key" :label="profileLabels[key] || key" :required="key === 'name'">
+            <el-input v-model="profileForm[key]" :type="key === 'email' ? 'email' : 'text'" />
+          </el-form-item>
+          <el-button :disabled="saving" @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" native-type="submit" :loading="saving">保存用户信息</el-button>
+        </el-form>
+      </el-tab-pane>
       <el-tab-pane label="修改密码" name="password">
       <el-form label-position="top" :disabled="saving" @submit.prevent="resetPassword">
       <el-form-item label="新密码"><el-input v-model="newPassword" type="password" autocomplete="new-password" show-password placeholder="至少6位" /></el-form-item>

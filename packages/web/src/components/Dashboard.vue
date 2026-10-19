@@ -16,7 +16,7 @@ async function loadSummary() {
     const [equipments, borrows, users, categories] = await Promise.all([
       api.get<ApiResponse<PageData<unknown>>>('/equipments', { params: { pageSize: 1 } }),
       api.get<ApiResponse<PageData<unknown>>>('/borrows', { params: { pageSize: 1 } }),
-      api.get<ApiResponse<PageData<unknown>>>('/user/users', { params: { pageSize: 1 } }),
+      api.get<ApiResponse<PageData<unknown>>>('/user/me', { params: { pageSize: 1 } }),
       api.get<ApiResponse<unknown[]>>('/categories'),
     ])
     equipmentTotal.value = equipments.data.data.total
