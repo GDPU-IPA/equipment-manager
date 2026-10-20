@@ -81,8 +81,8 @@ async function updateRole() {
 async function resetPassword() {
   if (saving.value || !resetting.value) return
   resetError.value = ''
-  if (newPassword.value.length <= 6 || newPassword.value !== confirmation.value) {
-    resetError.value = '新密码必须不少于6位，且两次输入须一致'
+  if (newPassword.value.length <= 8 || newPassword.value !== confirmation.value) {
+    resetError.value = '密码需为 8-16 位，仅可使用字母、数字和 $@!%*?.&_-，且必须包含大写字母、小写字母、数字和符号'
     return
   }
   if (!isStrongPassword(newPassword.value)) {
@@ -192,7 +192,7 @@ onMounted(loadUsers)
       </el-tab-pane>
       <el-tab-pane label="修改密码" name="password">
       <el-form label-position="top" :disabled="saving" @submit.prevent="resetPassword">
-      <el-form-item label="新密码"><el-input v-model="newPassword" type="password" autocomplete="new-password" show-password placeholder="至少6位" /></el-form-item>
+      <el-form-item label="新密码"><el-input v-model="newPassword" type="password" autocomplete="new-password" show-password placeholder="至少8位" /></el-form-item>
       <el-form-item label="确认密码"><el-input v-model="confirmation" type="password" autocomplete="new-password" show-password /></el-form-item>
       <el-button :disabled="saving" @click="dialogVisible = false">取消</el-button>
       <el-button type="primary" native-type="submit" :loading="saving">确认重置</el-button>
