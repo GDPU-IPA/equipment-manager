@@ -5,7 +5,7 @@ import type { Prisma as PrismaTypes } from '../db.js';
 import { prisma } from '../db.js';
 import { requireAdmin } from '../auth/require-auth.js';
 import type { AuthenticatedRequest } from '../auth/require-auth.js';
-import { hashPassword, isStrongPassword, verifyPassword } from '../auth/password.js';
+import { hashPassword, isStrongPassword, passwordRule, verifyPassword } from '../auth/password.js';
 
 const router: Router = Router();
 
@@ -41,7 +41,7 @@ export async function registerUser(req: Request, res: Response) {
     return;
   }
   if (!isStrongPassword(password)) {
-    res.status(400).json({ code: 400, msg: '密码长度必须不少于6位', data: null });
+    res.status(400).json({ code: 400, msg: passwordRule, data: null });
     return;
   }
   if (!isProfile(profile)) {
@@ -129,7 +129,7 @@ router.post('/me/password', async (req: Request, res: Response) => {
   const userId = Number((req as AuthenticatedRequest).user.sub);
   const { old_pwd: oldPassword, new_pwd: newPassword } = req.body ?? {};
   if (!isStrongPassword(newPassword)) {
-    res.status(400).json({ code: 400, msg: '密码长度必须不少于6位', data: null });
+    res.status(400).json({ code: 400, msg: passwordRule, data: null });
     return;
   }
 
@@ -158,7 +158,7 @@ router.post('/:id/password', requireAdmin, async (req: Request, res: Response) =
     return;
   }
   if (!isStrongPassword(newPassword)) {
-    res.status(400).json({ code: 400, msg: '密码长度必须大于6位', data: null });
+    res.status(400).json({ code: 400, msg: passwordRule, data: null });
     return;
   }
 

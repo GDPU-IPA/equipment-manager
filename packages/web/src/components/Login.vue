@@ -37,10 +37,6 @@ async function login() {
     error.value = '请输入姓名'
     return
   }
-  if (mode.value === 'register' && password.value.length < 6) {
-    error.value = '密码长度必须不少于6位'
-    return
-  }
   if (mode.value === 'register' && password.value !== confirmPassword.value) {
     error.value = '两次输入的密码不一致'
     return
@@ -105,9 +101,10 @@ async function login() {
             type="password"
             :disabled="loading"
             :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-            :placeholder="mode === 'login' ? '请输入密码' : '请输入至少6位密码'"
+            :placeholder="mode === 'login' ? '请输入密码' : '请输入8-16位强密码'"
             show-password
           />
+          <small v-if="mode === 'register'">{{ passwordRule }}</small>
         </el-form-item>
         <el-form-item v-if="mode === 'register'" label="确认密码">
           <el-input v-model="confirmPassword" :disabled="loading" type="password" autocomplete="new-password" placeholder="请再次输入密码" show-password />

@@ -3,17 +3,18 @@ import test from 'node:test';
 import bcrypt from 'bcrypt';
 import { hashPassword, isStrongPassword, needsPasswordRehash, verifyPassword } from './password.js';
 
-test('password validation only requires more than six characters', () => {
-  assert.equal(isStrongPassword('StrongPass@123'), true);
-  assert.equal(isStrongPassword('shortA1!'), true);
-  assert.equal(isStrongPassword('123456'), false);
-  assert.equal(isStrongPassword('1234567'), true);
-  assert.equal(isStrongPassword('abcdefg'), true);
-  assert.equal(isStrongPassword('ABCDEFG'), true);
-  assert.equal(isStrongPassword(''), false);
-  assert.equal(isStrongPassword('x'.repeat(129)), true);
-  assert.equal(isStrongPassword(1234567), false);
-  assert.equal(isStrongPassword(null), false);
+test('password validation enforces length, character types and allowed symbols', () => {
+  for (const symbol of '$@!%*?.&_-') {
+    assert.equal(isStrongPassword(`Abcdef1${symbol}`), true);
+  }
+  assert.equal(isStrongPassword('Abcdefghijklm1!x'), true);
+  for (const password of [
+    'Abcde1!', 'Abcdefghijklmn1!x', 'abcdef1!', 'ABCDEF1!',
+    'Abcdefg!', 'Abcdef12', 'Abcdef1#', 'Abcde1! ',
+    'Abcde1!中', ',Abcdef1!', 'Abcdef1!\n', '', 1234567, null,
+  ]) {
+    assert.equal(isStrongPassword(password), false, `Unexpected valid password: ${password}`);
+  }
 });
 
 test('password helper resolves its TypeScript module and verifies hashed passwords', async () => {
