@@ -59,15 +59,8 @@ async function login() {
       password: password.value,
     }
     if (mode.value === 'register') {
-<<<<<<< HEAD
-      const { data } = await api.post<ApiResponse<unknown>>('/users', {
-        ...credentials,
-        profile: { name: name.value.trim() },
-      })
-=======
       const registration = { ...credentials, profile: { name: credentials.username } }
       const { data } = await api.post<ApiResponse<unknown>>('/users', registration)
->>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
       if (data.code !== 201) throw new Error(data.msg || '注册失败')
       mode.value = 'login'
       success.value = '注册成功，请登录'

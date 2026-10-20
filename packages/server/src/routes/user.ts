@@ -173,64 +173,25 @@ router.post('/:id/password', requireAdmin, async (req: Request, res: Response) =
   res.json({ code: 200, msg: 'success', data: null });
 });
 
-<<<<<<< HEAD
-router.patch('/:id/profile', requireAdmin, async (req: Request, res: Response) => {
-  const id = parseId(req.params.id);
-  const profile = req.body?.profile;
-  if (id === null) {
-    res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
-    return;
-  }
-  if (!isProfile(profile)) {
-    res.status(400).json({ code: 400, msg: '姓名不能为空，用户信息各字段必须为字符串', data: null });
-    return;
-  }
-  const result = await prisma.user.updateMany({
-    where: { id },
-    data: { profile: { ...profile, name: profile.name!.trim() } as Prisma.InputJsonValue },
-  });
-  if (result.count === 0) {
-    res.status(404).json({ code: 404, msg: 'user_not_found', data: null });
-    return;
-  }
-  res.json({ code: 200, msg: 'success', data: null });
-});
-
-router.patch('/:id/role', requireAdmin, async (req: Request, res: Response) => {
-  const id = parseId(req.params.id);
-  const role = req.body?.role;
-=======
 router.patch('/:id/role', requireAdmin, async (req: Request, res: Response) => {
   const id = parseId(req.params.id);
   const role = typeof req.body?.role === 'string' ? req.body.role.trim() : '';
->>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
   if (id === null) {
     res.status(400).json({ code: 400, msg: 'invalid_id', data: null });
     return;
   }
-<<<<<<< HEAD
-  if (role !== 'admin' && role !== 'user') {
-    res.status(400).json({ code: 400, msg: 'role_must_be_admin_or_user', data: null });
-    return;
-  }
-=======
   if (role !== 'user' && role !== 'admin') {
     res.status(400).json({ code: 400, msg: 'invalid_role', data: null });
     return;
   }
 
->>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
   const result = await prisma.user.updateMany({ where: { id }, data: { role } });
   if (result.count === 0) {
     res.status(404).json({ code: 404, msg: 'user_not_found', data: null });
     return;
   }
-<<<<<<< HEAD
-  res.json({ code: 200, msg: 'success', data: { id, role } });
-=======
   const user = await prisma.user.findUnique({ where: { id }, select: userSelect });
   res.json({ code: 200, msg: 'success', data: user });
->>>>>>> 0bf8aeb72cc445a61ff7752c59ec15b43cfab962
 });
 
 router.get('/', requireAdmin, async (req: Request, res: Response) => {
