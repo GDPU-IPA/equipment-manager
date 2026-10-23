@@ -41,7 +41,7 @@
 |:------------- |:------------ |:---------------- |:----------------- |:--------------------------- |
 | **id**        | INT       | PK, Auto Inc     | -                 | 用户唯一标识                      |
 | username      | VARCHAR(50)  | NOT NULL, Unique | -                 | 学号                          |
-| role          | VARCHAR(50)  | NOT NULL         | 'user'            | 角色（student, teacher, admin） |
+| role          | VARCHAR(50)  | NOT NULL         | 'user'            | 角色（user, admin） |
 | password_hash | VARCHAR(255) | NOT NULL         | -                 | 密码哈希值                       |
 | profile       | JSONB         | NULL             | NULL              | 附加信息（姓名/年级/班级/手机号/邮箱）       |
 | status        | TINYINT      | NOT NULL         | 1                 | 状态：1-正常，0-禁用，2-锁定           |
