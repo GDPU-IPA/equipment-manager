@@ -1,10 +1,147 @@
-.el-aside{
-    background-color: rgb(18, 18, 18);
-    color: azure;
-}
-.el-menu-item
+:root {
+    /* font-family: "Microsoft YaHei", sans-serif; */
+    font-family: Georgia, 'Times New Roman', Times, serif;
 
-h1,h2,h3,h4,h5{
-    color: azure;
+    --el-color-primary: #142B5D !important;
+
+    --el-button-bg-color: var(--el-border-color);
+    --el-button-border-color: var(--el-border-color);
+
+    --el-menu-bg-color: var(--el-border-color);
+
+    --el-menu-bg-color:#000000 !important;
+    --el-menu-text-color: #a0a0a0!important;
+    --el-menu-active-color: #FFFFFF!important;    
+
 }
 
+* {
+    box-sizing: border-box;
+}
+
+
+.el-container {
+    min-height: 100vh;
+}
+
+.el-main {
+    min-width: 0;
+}
+
+.el-aside {
+    background: var(--el-menu-bg-color) !important;
+}
+
+.el-menu {
+    border-right: none !important;
+}
+
+.el-menu-item {
+  font-size: 15px !important;
+}
+
+
+.app-header {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.header,
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.message {
+    margin-bottom: 16px;
+}
+
+.el-pagination {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.el-card {
+    /* border-radius: 12px !important; */
+    background-color:white !important;
+}
+
+/* @media (max-width: 640px) {
+    #sidebar {
+        width: 120px !important;
+    }
+
+    #sidebar h2 {
+        font-size: 16px;
+        overflow-wrap: anywhere;
+    }
+
+    .el-main {
+        padding: 12px !important;
+    }
+
+    .el-pagination {
+        justify-content: flex-start;
+    }
+} */
+
+
+html,
+body,
+#app {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background-color: var(--el-menu-bg-color);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+    color: #FFFFFF;
+}
+
+.el-aside {
+    height: 100vh !important;
+    width: 150px !important;
+}
+
+.el-menu-item {
+    text-align: center;
+    justify-content: center;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.el-card {
+    background-color: #1a1a1a;
+}
+
+
+/*以下是从App.vue迁移过来的样式*/
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: white !important;
+  /* border: 2px solid #FFFFFF; */
+  /* border-radius: 11px !important; */
+  /* border-color: rgb(255, 255, 255) !important; */
+}
+
+.header-username {
+  font-weight: 500;
+}
+
+#sidebar {
+  width: 200px !important;
+
+  border-color: rgba(199, 200, 202, 0.301);
+}

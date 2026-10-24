@@ -2,7 +2,7 @@
 
 > **全局约定**：
 > 1. 除登录、注册外，所有接口需在 HTTP Header 中携带 `Authorization: Bearer <token>`。
-> 2. 统一响应格式：`{ "code": 200, "msg": "success", "data": { ... } }`。下文表格仅列出 `data` 内部的核心字段。
+> 2. 统一响应格式：`{ "code": 201, "msg": "success", "data": { ... } }`。下文表格仅列出 `data` 内部的核心字段。
 > 3. **时间格式**：所有 `DATETIME` 类型字段统一返回格式为 `yyyy-mm-dd hh:mm:ss.xxxxxx` (如: `2026-09-20 14:30:00.000000`)，前端请求时若传字符串需符合 ISO 8601 或该格式。
 
 ## 目录
@@ -17,13 +17,13 @@
 
 | 功能 | 请求方法 | URL | 说明 |
 | :--- | :--- | :--- | :--- |
-| 注册 | POST | `/api/user` | 注册账号（默认角色为 `student` 或 `user`） |
+| 注册 | POST | `/api/users` | 注册账号（默认角色为 `admin` 或 `user`） |
 | 登录 | POST | `/api/session` | 验证账号密码，返回 Token |
-| 登出 | DELETE | `/api/session` | 清除当前 Token（服务端配合黑名单） |
-| 当前用户信息 | GET | `/api/session/me` | 返回当前登录用户详细信息 |
+| 登出 | POST | `/api/session/current` | 清除当前 Token（服务端配合黑名单） |
+| 当前用户信息 | GET | `/api/user/me` | 返回当前登录用户详细信息 |
 | 修改密码 | POST | `/api/user/me/password` | 用户修改自己的密码 |
 | 重置密码(管理员)| POST | `/api/user/{id}/password`| 管理员重置指定用户的密码 |
-| 用户列表 | GET | `/api/user/users` | 管理员获取用户列表（支持分页/角色/状态筛选） |
+| 用户列表 | GET | `/api/user` | 管理员获取用户列表（支持分页/角色/状态筛选） |
 
 ### 1. 注册
 | 字段 | 类型 | 必填 | 说明 | 示例 |
@@ -36,8 +36,7 @@
 ```json
 {
   "name": "张三",
-  "grade": "2023级",
-  "class_name": "计算机科学与技术1班",
+  "class": "计算机科学与技术231班",
   "phone": "13800138000",
   "email": "zhangsan@example.com"
 }
@@ -47,7 +46,7 @@
 无请求体。服务端撤销当前 Bearer Token。
 
 ### 4. 修改密码
-`POST /api/users/me/password` 请求体：
+`POST /api/user/me/password` 请求体：
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :--- | :--- |
@@ -55,7 +54,7 @@
 | new_pwd | string | 是 | 新密码，须满足注册密码复杂度要求 |
 
 ### 5. 重置密码 (管理员)
-`POST /api/users/{id}/password` 请求体：
+`POST /api/user/{id}/password` 请求体：
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :--- | :--- |
@@ -73,7 +72,7 @@
 | token | string | JWT 或 Session Token，用于后续鉴权 | "eyJhbGciOiJI..." |
 | role | string | 用户角色（`student`, `teacher`, `admin`） | "student" |
 
-### 3. 当前用户信息 (GET `/api/users/me`)
+### 3. 当前用户信息 (GET `/api/user/me`)
 #### 响应字段 (data)
 | 字段 | 类型 | 说明 | 示例 |
 | :--- | :--- | :--- | :--- |

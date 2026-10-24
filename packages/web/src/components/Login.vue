@@ -79,54 +79,70 @@ async function login() {
 </script>
 
 <template>
-  <main class="login-page">
+  <main class="login-page" style="background-color: #FFFFFF;">
     <!-- <el-card id="slogan">
-      <h1>广东药科大学</h1>
-      <h1>创新实践协会器材管理系统</h1>
+      
     </el-card> -->
-    <el-card class="login-card" shadow="never">
-      <template #header><strong>{{ mode === 'login' ? '登录' : '注册' }}</strong></template>
-      <el-alert v-if="success" :title="success" type="success" show-icon :closable="false" class="login-error" />
-      <el-alert v-if="error" :title="error" type="error" show-icon class="login-error" />
-      <el-form label-position="top" @submit.prevent="login">
-        <el-form-item label="学号/工号">
-          <el-input v-model="username" :disabled="loading" autocomplete="username" placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item v-if="mode === 'register'" label="姓名">
-          <el-input v-model="name" :disabled="loading" autocomplete="name" placeholder="请输入姓名" />
-        </el-form-item>
-        <el-form-item label="密码">
-          <el-input
-            v-model="password"
-            type="password"
-            :disabled="loading"
-            :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
-            :placeholder="mode === 'login' ? '请输入密码' : '请输入8-16位强密码'"
-            show-password
-          />
-          <small v-if="mode === 'register'">{{ passwordRule }}</small>
-        </el-form-item>
-        <el-form-item v-if="mode === 'register'" label="确认密码">
-          <el-input v-model="confirmPassword" :disabled="loading" type="password" autocomplete="new-password" placeholder="请再次输入密码" show-password />
-        </el-form-item>
-        <el-button class="login-button" type="primary" native-type="submit" :loading="loading">
-          {{ mode === 'login' ? '登录' : '注册' }}
-        </el-button>
-        <el-button class="switch-button" link type="primary" :disabled="loading" @click="mode = mode === 'login' ? 'register' : 'login'">
-          {{ mode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录' }}
-        </el-button>
-      </el-form>
-    </el-card>
+    <div
+      style="background-color:#FFFFFF ;display: flex;align-items: center;justify-content: center;justify-items: center;text-align: center;">
+      <div style="display: block;justify-items: center;margin-right: 16vw;">
+        <div style="margin-bottom: 3vh;"><img src="/ipa.png" alt="" style="height: 23vh;"></div>
+        <div>
+          <h1 style="font-family:Georgia, 'Times New Roman', Times, serif;">广东药科大学</h1>
+        </div>
+        <div style="margin-bottom: 7vh;">
+          <h1 style="font-family:Georgia, 'Times New Roman', Times, serif;">创新实践协会器材管理系统</h1>
+        </div>
+
+      </div>
+
+
+      <div>
+        <el-card class="login-card" shadow="never">
+          <template #header><strong>{{ mode === 'login' ? '登录' : '注册' }}</strong></template>
+          <el-alert v-if="success" :title="success" type="success" show-icon :closable="false" class="login-error" />
+          <el-alert v-if="error" :title="error" type="error" show-icon class="login-error" />
+          <el-form label-position="top" @submit.prevent="login">
+            <el-form-item label="学号/工号">
+              <el-input v-model="username" :disabled="loading" autocomplete="username" placeholder="请输入用户名" />
+            </el-form-item>
+            <el-form-item v-if="mode === 'register'" label="姓名">
+              <el-input v-model="name" :disabled="loading" autocomplete="name" placeholder="请输入姓名" />
+            </el-form-item>
+            <el-form-item label="密码">
+              <el-input v-model="password" type="password" :disabled="loading"
+                :autocomplete="mode === 'login' ? 'current-password' : 'new-password'"
+                :placeholder="mode === 'login' ? '请输入密码' : '请输入8-16位强密码'" show-password />
+              <small v-if="mode === 'register'">{{ passwordRule }}</small>
+            </el-form-item>
+            <el-form-item v-if="mode === 'register'" label="确认密码">
+              <el-input v-model="confirmPassword" :disabled="loading" type="password" autocomplete="new-password"
+                placeholder="请再次输入密码" show-password />
+            </el-form-item>
+            <el-button class="login-button" type="primary" native-type="submit" :loading="loading">
+              {{ mode === 'login' ? '登录' : '注册' }}
+            </el-button>
+            <el-button class="switch-button" link type="primary" :disabled="loading"
+              @click="mode = mode === 'login' ? 'register' : 'login'">
+              {{ mode === 'login' ? '没有账号？立即注册' : '已有账号？返回登录' }}
+            </el-button>
+          </el-form>
+        </el-card>
+      </div>
+    </div>
+
   </main>
 </template>
 
 <style scoped>
-#slogan{
+#slogan {
   justify-content: center;
   text-align: center;
-  /* margin-bottom: 12px; */
-  /* padding: 12px; */
-  /* background-color: aqua; */
+
+}
+
+.el-input {
+  --el-input-focus-border-color: #142B5D;
 }
 
 .login-page {
@@ -146,6 +162,13 @@ async function login() {
 
 .login-button {
   width: 100%;
+  background-color: #142B5D;
+  border: #142B5D;
 }
-.switch-button { margin-top: 16px; }
+
+.switch-button {
+  margin-top: 16px;
+  color: #142B5D;
+  /* border: #142B5D; */
+}
 </style>

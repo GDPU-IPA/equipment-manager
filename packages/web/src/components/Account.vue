@@ -110,4 +110,9 @@ async function save() {
 .password-form {
   max-width: 420px;
 }
+
+.el-button{
+  background-color: #142B5D;
+  border-color: #142B5D;
+}
 </style>

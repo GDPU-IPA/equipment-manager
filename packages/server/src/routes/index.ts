@@ -12,13 +12,12 @@ export const apiRouter: Router = Router();
 apiRouter.use('/session', sessionRouter);
 apiRouter.post('/users', registerUser);
 apiRouter.use(requireAuth);
-apiRouter.post('/sessions/current', logoutCurrentSession);
 apiRouter.use('/categories', categoryRouter);
 apiRouter.use('/borrows', borrowRouter);
 apiRouter.use('/return-records', returnRecordRouter);
 apiRouter.use('/equipments', equipmentRouter);
 apiRouter.use('/user', userRouter);
 apiRouter.use('/session', sessionRouter);
-
+apiRouter.post('/sessions/current', logoutCurrentSession);
 
 export default apiRouter;

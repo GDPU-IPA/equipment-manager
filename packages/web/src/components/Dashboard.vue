@@ -37,25 +37,36 @@ onMounted(loadSummary)
 
 <template>
   <div v-loading="loading">
-    <div class="card-header message"><h2>工作台</h2><el-button :loading="loading" @click="loadSummary">刷新统计</el-button></div>
+    <div class="card-header message">
+      <h2>工作台</h2><el-button :loading="loading" @click="loadSummary">刷新统计</el-button>
+    </div>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
     <el-row :gutter="20">
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="器材数量"
+      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover" class="statistic-card"><el-statistic title="器材数量"
             :value="equipmentTotal" /></el-card></el-col>
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="借用明细"
+      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover" class="statistic-card"><el-statistic title="借用明细"
             :value="borrowTotal" /></el-card></el-col>
-      <el-col v-if="currentUser?.role === 'admin'" :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="用户数量"
-            :value="userTotal" /></el-card></el-col>
-      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover"><el-statistic title="启用分类"
+      <el-col v-if="currentUser?.role === 'admin'" :xs="24" :sm="12" :lg="6"><el-card shadow="hover" class="statistic-card"><el-statistic
+            title="用户数量" :value="userTotal" /></el-card></el-col>
+      <el-col :xs="24" :sm="12" :lg="6"><el-card shadow="hover" class="statistic-card"><el-statistic title="启用分类"
             :value="categoryTotal" /></el-card></el-col>
     </el-row>
     <el-card shadow="never"><template #header><strong>快捷入口</strong></template>
       <el-space wrap>
-        <el-button @click="$router.push('/item')">查看器材</el-button>
+        <el-button @click="$router.push('/item')" v-if="currentUser?.role === 'admin'">查看器材</el-button>
         <el-button @click="$router.push('/borrows')">借用记录</el-button>
         <el-button @click="$router.push('/categories')">查看分类</el-button>
         <el-button @click="$router.push('/account')">账号信息</el-button>
+        <el-button @click="$router.push('/announcement')" v-if="currentUser?.role === 'admin'">发布公告</el-button>
+
       </el-space>
+    </el-card>
+    <h2>公告</h2>
+    <el-card shadow="never" style="margin-top: 2vh;">
+      测试
+
+
+
     </el-card>
   </div>
 </template>
@@ -69,7 +80,8 @@ onMounted(loadSummary)
   margin-bottom: 20px;
 }
 
-.el-card{
-  border-radius: 15px !important;
+.el-card {
+  border-radius: 11px !important;
 }
+
 </style>

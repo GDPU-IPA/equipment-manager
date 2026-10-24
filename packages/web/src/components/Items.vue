@@ -1,5 +1,3 @@
-
-
 <script setup lang="ts">
 // import {ref} from 'vue'
 import { computed, onMounted, ref } from 'vue'
@@ -39,6 +37,11 @@ function toggleSelection(id: number, checked: boolean) {
   selectedIds.value = checked
     ? [...new Set([...selectedIds.value, id])]
     : selectedIds.value.filter(selectedId => selectedId !== id)
+}
+
+function handleRowClick(item: Item) {
+  if (!isAdmin.value || !batchMode.value) return
+  toggleSelection(item.id, !selectedIds.value.includes(item.id))
 }
 
 async function batchUpdateStatus(status: 0 | 1) {
@@ -156,10 +159,10 @@ onMounted(() => { loadCategories(); loadItems() })
       <el-form-item><el-button type="primary" @click="search">查询</el-button></el-form-item>
     </el-form>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
-    <el-table v-loading="loading" :data="items" stripe empty-text="暂无器材">
+    <el-table v-loading="loading" :data="items" stripe empty-text="暂无器材" @row-click="handleRowClick">
       <el-table-column v-if="isAdmin && batchMode" label="选择" width="70" fixed="left">
         <template #default="{ row }">
-          <el-checkbox :model-value="selectedIds.includes(row.id)" @change="(checked: string | number | boolean) => toggleSelection(row.id, Boolean(checked))" />
+          <el-checkbox :model-value="selectedIds.includes(row.id)" @click.stop @change="(checked: string | number | boolean) => toggleSelection(row.id, Boolean(checked))" />
         </template>
       </el-table-column>
       <el-table-column prop="id" label="编号" width="80" />
@@ -213,4 +216,8 @@ onMounted(() => { loadCategories(); loadItems() })
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* .el-button{
+  background-color: ;
+} */
 </style>

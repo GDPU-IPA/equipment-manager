@@ -22,7 +22,7 @@
   "type": "module",
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "turbo": "^2.10.13",
+    "turbo": "^2.11.10",
     "typescript": "^7.0.2"
   },
   "dependencies": {

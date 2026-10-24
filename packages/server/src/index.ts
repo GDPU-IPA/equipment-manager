@@ -10,10 +10,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', async (_req, res) => {
-  await prisma.$queryRaw`SELECT 1`;
-  res.json({ code: 200, msg: 'success', data: { status: 'ok', dbConnected: true } });
-});
+// app.get('/api/health', async (_req, res) => {
+//   await prisma.$queryRaw`SELECT 1`;
+//   res.json({ code: 200, msg: 'success', data: { status: 'ok', dbConnected: true } });
+// });
 
 app.use('/api', apiRouter);
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import './style.css'
-// import "./styles/dark.css"
-// import Items from '../src/components/Items.vue'
+import './styles/light.css'
+// import './styles/dark.css'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, errorMessage } from './api'
@@ -38,9 +37,14 @@ async function logout() {
 </script>
 
 <template>
+
   <router-view v-if="$route.meta.layout === 'auth'" />
   <el-container v-else>
-    <el-aside id="sidebar">
+    <el-aside id="sidebar"> 
+      <div style="display: flex;justify-content: center;justify-items: center;margin-top:30px ;"> 
+        <img src="/ipa-t.png" alt="" style="width: 100px;height: 100px;border-radius: 50%;background-color: white;">
+
+      </div>
       <div style="text-align: center;
         justify-content: center;
         padding: 12px;
@@ -51,9 +55,11 @@ async function logout() {
       </div>
       <el-menu router :default-active="$route.path">
         <el-menu-item index="/">工作台</el-menu-item>
+        <!-- <el-menu-item index="/announcement">公告</el-menu-item> -->
         <el-menu-item v-if="currentUser?.role === 'admin'" index="/item">设备中心</el-menu-item>
         <el-menu-item index="/borrows">借用记录</el-menu-item>
-        <el-menu-item index="/categories">器材分类</el-menu-item>
+        <!-- <el-menu-item index="/categories">器材分类</el-menu-item> -->
+
         <el-menu-item v-if="currentUser?.role === 'admin'" index="/users">人员管理</el-menu-item>
         <el-menu-item index="/account">账号信息</el-menu-item>
 
@@ -63,16 +69,6 @@ async function logout() {
     <el-main>
       <el-header class="app-header">
         <el-button type="danger" plain :loading="loggingOut" @click="logout">退出登录</el-button>
-        <!-- <span class="header-username">{{ username }}</span> -->
-        <!-- <span>什么什么什么</span> -->
-        <!-- <el-button type="danger" plain @click="logout">退出登录</el-button> -->
-        <!-- <el-menu>
-          <el-sub-menu>
-            <template #我的></template>
-<el-menu-item>账号信息</el-menu-item>
-<el-menu-item>退出登录</el-menu-item>
-</el-sub-menu>
-</el-menu> -->
 
       </el-header>
       <el-alert v-if="logoutError" :title="logoutError" type="error" show-icon class="message" />
@@ -84,7 +80,7 @@ async function logout() {
 </template>
 
 <style scoped>
-.app-header {
+/* .app-header {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -97,5 +93,8 @@ async function logout() {
 #sidebar {
   width: 200px !important;
 
-}
+  border-color: rgba(199, 200, 202, 0.301);
+} */
+
+
 </style>
