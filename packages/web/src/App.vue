@@ -57,7 +57,7 @@ async function logout() {
         <el-menu-item index="/">工作台</el-menu-item>
         <!-- <el-menu-item index="/announcement">公告</el-menu-item> -->
         <el-menu-item v-if="currentUser?.role === 'admin'" index="/item">设备中心</el-menu-item>
-        <el-menu-item index="/borrows">借用记录</el-menu-item>
+        <el-menu-item index="/borrows">{{ currentUser?.role === 'admin' ? '借用管理' : '我的借用' }}</el-menu-item>
         <!-- <el-menu-item index="/categories">器材分类</el-menu-item> -->
 
         <el-menu-item v-if="currentUser?.role === 'admin'" index="/users">人员管理</el-menu-item>

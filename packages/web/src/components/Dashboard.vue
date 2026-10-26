@@ -54,7 +54,7 @@ onMounted(loadSummary)
     <el-card shadow="never"><template #header><strong>快捷入口</strong></template>
       <el-space wrap>
         <el-button @click="$router.push('/item')" v-if="currentUser?.role === 'admin'">查看器材</el-button>
-        <el-button @click="$router.push('/borrows')">借用记录</el-button>
+        <el-button @click="$router.push('/borrows')">{{ currentUser?.role === 'admin' ? '借用管理' : '申请借用' }}</el-button>
         <el-button @click="$router.push('/categories')">查看分类</el-button>
         <el-button @click="$router.push('/account')">账号信息</el-button>
         <el-button @click="$router.push('/announcement')" v-if="currentUser?.role === 'admin'">发布公告</el-button>

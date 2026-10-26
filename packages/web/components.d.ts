@@ -12,6 +12,8 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Account: typeof import('./src/components/Account.vue')['default']
+    BorrowApplication: typeof import('./src/components/BorrowApplication.vue')['default']
+    BorrowDetail: typeof import('./src/components/BorrowDetail.vue')['default']
     Borrows: typeof import('./src/components/Borrows.vue')['default']
     Categories: typeof import('./src/components/Categories.vue')['default']
     Dashboard: typeof import('./src/components/Dashboard.vue')['default']
@@ -22,6 +24,7 @@ declare module 'vue' {
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElCol: typeof import('element-plus/es')['ElCol']
     ElContainer: typeof import('element-plus/es')['ElContainer']
+    ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
     ElDescriptions: typeof import('element-plus/es')['ElDescriptions']
     ElDescriptionsItem: typeof import('element-plus/es')['ElDescriptionsItem']
     ElDialog: typeof import('element-plus/es')['ElDialog']
