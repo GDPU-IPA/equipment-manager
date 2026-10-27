@@ -38,7 +38,7 @@ onMounted(loadSummary)
 <template>
   <div v-loading="loading">
     <div class="card-header message">
-      <h2>工作台</h2><el-button :loading="loading" @click="loadSummary">刷新统计</el-button>
+      <h2 style="margin-left: 10px;">工作台</h2><el-button :loading="loading" @click="loadSummary">刷新统计</el-button>
     </div>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
     <el-row :gutter="20">
@@ -61,7 +61,7 @@ onMounted(loadSummary)
 
       </el-space>
     </el-card>
-    <h2>公告</h2>
+    <h2 style="margin-left: 11px;">公告</h2>
     <el-card shadow="never" style="margin-top: 2vh;">
       测试
 

@@ -6,6 +6,9 @@ import { useRouter } from 'vue-router'
 import { api, errorMessage } from './api'
 import { clearSession, currentUser } from './session'
 import axios from 'axios'
+import { HomeFilled } from '@element-plus/icons-vue'
+
+const drawerVisible = ref(false)
 
 const displayName = computed(() => {
   const profile = currentUser.value?.profile
@@ -40,10 +43,13 @@ async function logout() {
 
   <router-view v-if="$route.meta.layout === 'auth'" />
   <el-container v-else>
-    <el-aside id="sidebar"> 
-      <div style="display: flex;justify-content: center;justify-items: center;margin-top:30px ;"> 
-        <img src="/ipa-t.png" alt="" style="width: 100px;height: 100px;border-radius: 50%;background-color: white;">
 
+
+
+    <!-- 电脑端的侧边栏 -->
+    <el-aside id="sidebar">
+      <div style="display: flex;justify-content: center;justify-items: center;margin-top:30px ;">
+        <img src="/ipa-t.png" alt="" style="width: 100px;height: 100px;border-radius: 50%;background-color: white;">
       </div>
       <div style="text-align: center;
         justify-content: center;
@@ -62,20 +68,57 @@ async function logout() {
 
         <el-menu-item v-if="currentUser?.role === 'admin'" index="/users">人员管理</el-menu-item>
         <el-menu-item index="/account">账号信息</el-menu-item>
+        <div
+          style="display: flex;flex-direction:column-reverse;justify-items: center;justify-content:center;align-items: center;margin-top: 8vh;">
+          <el-button type="danger" plain :loading="loggingOut" @click="logout" style="width:88px;">退出登录</el-button>
+
+        </div>
 
 
       </el-menu>
     </el-aside>
-    <el-main>
-      <el-header class="app-header">
-        <el-button type="danger" plain :loading="loggingOut" @click="logout">退出登录</el-button>
 
+    <el-main>
+
+
+      <!-- 移动端的顶部栏和汉堡菜单 -->
+      <el-header class="app-header">
+        <h2 style="margin-right: 28vw;" id="name">你好，{{ displayName }}</h2>
+        <el-button class="hamburger" @click="drawerVisible = true">
+          <el-icon>
+            <HomeFilled />
+          </el-icon>
+        </el-button>
       </el-header>
+
       <el-alert v-if="logoutError" :title="logoutError" type="error" show-icon class="message" />
       <router-view />
     </el-main>
 
   </el-container>
+
+  <!-- 移动端抽屉菜单 -->
+  <el-drawer v-model="drawerVisible" direction="ltr" size="200px" :with-header="false">
+    <el-menu @select="drawerVisible = false" router :default-active="$route.path">
+      <div>
+        <img src="/ipa-t.png" alt="" style="width: 70px;height: 70px;border-radius: 50%;background-color: white;margin-left: 12vw;margin-bottom:3vh;">
+      </div>
+      <el-menu-item index="/">工作台</el-menu-item>
+      <!-- <el-menu-item index="/announcement">公告</el-menu-item> -->
+      <el-menu-item v-if="currentUser?.role === 'admin'" index="/item">设备中心</el-menu-item>
+      <el-menu-item index="/borrows">借用记录</el-menu-item>
+      <!-- <el-menu-item index="/categories">器材分类</el-menu-item> -->
+
+      <el-menu-item v-if="currentUser?.role === 'admin'" index="/users">人员管理</el-menu-item>
+      <el-menu-item index="/account">账号信息</el-menu-item>
+      <div
+        style="display: flex;flex-direction:column-reverse;justify-items: center;justify-content:center;align-items: center;margin-top: 8vh;">
+        <el-button type="danger" plain :loading="loggingOut" @click="logout" style="width:88px;">退出登录</el-button>
+
+      </div>
+
+    </el-menu>
+  </el-drawer>
 
 </template>
 
@@ -86,15 +129,31 @@ async function logout() {
   justify-content: flex-end;
 }
 
-.header-username {
-  font-weight: 500;
+*/
+
+
+/* 默认（电脑端）：隐藏汉堡按钮，显示侧边栏 */
+.hamburger {
+  display: none;
+}
+.app-header{
+  display: none;
+}
+#sidebar {
+  width: 16vw !important;
+  display: block;
+  border-color: rgba(199, 200, 202, 0.301);
 }
 
-#sidebar {
-  width: 200px !important;
-
-  border-color: rgba(199, 200, 202, 0.301);
-} */
-
-
+@media (max-width:768px) {
+  #sidebar {
+    display: none;
+  }
+  .app-header{
+    display: flex;
+  }
+  .hamburger {
+    display: inline-flex;
+  }
+}
 </style>

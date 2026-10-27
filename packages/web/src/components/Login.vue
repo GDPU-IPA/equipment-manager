@@ -80,18 +80,15 @@ async function login() {
 
 <template>
   <main class="login-page" style="background-color: #FFFFFF;">
-    <!-- <el-card id="slogan">
-      
-    </el-card> -->
     <div
       style="background-color:#FFFFFF ;display: flex;align-items: center;justify-content: center;justify-items: center;text-align: center;">
-      <div style="display: block;justify-items: center;margin-right: 16vw;">
-        <div style="margin-bottom: 3vh;"><img src="/ipa.png" alt="" style="height: 23vh;"></div>
-        <div>
-          <h1 style="font-family:Georgia, 'Times New Roman', Times, serif;">广东药科大学</h1>
+      <div style="display: block;justify-items: center;margin-right: 14vw;margin-left: 11vw;">
+        <div style="margin-bottom: 3vh;" id="logo"><img src="/ipa.png" alt="" style="height: 23vh;"></div>
+        <div class="slogan">
+          <h2 style="font-family:Georgia, 'Times New Roman', Times, serif;">广东药科大学</h2>
         </div>
-        <div style="margin-bottom: 7vh;">
-          <h1 style="font-family:Georgia, 'Times New Roman', Times, serif;">创新实践协会器材管理系统</h1>
+        <div style="margin-bottom: 7vh;" class="slogan">
+          <h2 style="font-family:Georgia, 'Times New Roman', Times, serif;">创新实践协会器材管理系统</h2>
         </div>
 
       </div>
@@ -169,6 +166,26 @@ async function login() {
 .switch-button {
   margin-top: 16px;
   color: #142B5D;
-  /* border: #142B5D; */
+
+}
+
+@media(max-width:768px) {
+
+  div {
+    flex-direction: column;
+  }
+
+  #logo img {
+    height: 12vh !important;
+  }
+
+  .slogan {
+    h2 {
+      font-size: 2vh !important;
+    }
+
+    margin: 0px !important;
+  }
+
 }
 </style>
