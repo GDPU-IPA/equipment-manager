@@ -152,9 +152,9 @@ loadAll()
       </el-form-item>
     </el-form>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
-    <el-table stripe empty-text="暂无器材数据" :data="rows" v-loading="loading">
+    <el-table stripe empty-text="暂无器材数据" :data="rows" v-loading="loading" max-height="calc(100vh - 240px)">
       <el-table-column prop="id" label="编号" width="100px" align="center" />
-      <el-table-column prop="name" label="名称" width="100px" align="center" />
+      <el-table-column prop="name" label="名称" width="180px" align="center" />
       <el-table-column label="分类" width="100px" align="center">
         <template #default="scope">
           {{ scope.row.category ? scope.row.category.name : '-' }}
@@ -187,21 +187,21 @@ loadAll()
       </el-table-column>
     </el-table>
     <el-pagination layout="total,sizes,prev,pager,next" v-model:current-page="page" v-model:page-size="pageSize"
-      :page-sizes="[10, 20, 50]" :total="total" @current-change="loadAll" @size-change="changeSize" />
+      :page-sizes="[10, 20, 50]" :total="total" @current-change="loadAll" @size-change="changeSize" class="pager"/>
   </el-card>
   <el-dialog v-model="dialogVisible" title="借用器材" width="min(420px, 90vw)" :close-on-click-modal="!submitting"
-    :show-close="submitting">
+    :show-close="!submitting">
     <el-descriptions :column="1" border size="small">
       <el-descriptions-item label="器材">{{ currentName }}</el-descriptions-item>
       <el-descriptions-item label="可用库存">{{ maxStock }}</el-descriptions-item>
     </el-descriptions>
     <el-alert v-if="dialogError" :title="dialogError" type="error" show-icon class="message" style="margin-top: 12px" />
     <el-form label-position="top" style="margin-top: 12px;">
-      <el-form-item lable="借用数量" required>
-        <el-input-number v-model="qty" min="1" :max="maxStock" />
+      <el-form-item label="借用数量" required>
+        <el-input-number v-model="qty" :min="1" :max="maxStock" />
       </el-form-item>
       <el-form-item label="备注">
-        <el-input v-model="remark" type="textarea" :rows="2" maxlength="225" show-word-limit placeholder="选填" />
+        <el-input v-model="remark" type="textarea" :rows="2" maxlength="255" show-word-limit placeholder="选填" />
       </el-form-item>
     </el-form>
     <template #footer>
@@ -219,5 +219,9 @@ loadAll()
 
 .pager {
   margin-top: 12px;
+}
+
+:deep(.el-table__body .el-table__cell) {
+  padding: 14px 0;
 }
 </style>
