@@ -74,6 +74,10 @@ function canBorrow(row: Equipment) {
   return row.status === 1 && row.available_stock > 0
 }
 
+function rowClass(data: { row: Equipment}) {
+  return data.row.status === 1 ? '' : 'row-disabled'
+}
+
 function changeSize() {
   page.value = 1
   loadAll()
@@ -112,6 +116,10 @@ function pick(row: Equipment) {
 async function submitBorrow() {
   if (submitting.value) return
   dialogError.value = ''
+  if (!Number.isInteger(qty.value)) {
+  dialogError.value = '借用数量必须是整数'
+  return
+  }
   if (!Number.isInteger(qty.value) || qty.value < 1) {
     dialogError.value = '数量至少为1'
     return
@@ -152,7 +160,7 @@ loadAll()
       </el-form-item>
     </el-form>
     <el-alert v-if="error" :title="error" type="error" show-icon class="message" />
-    <el-table stripe empty-text="暂无器材数据" :data="rows" v-loading="loading" max-height="calc(100vh - 240px)">
+    <el-table stripe empty-text="暂无器材数据" :data="rows" v-loading="loading" max-height="calc(100vh - 240px)" :row-class-name="rowClass">
       <el-table-column prop="id" label="编号" width="100px" align="center" />
       <el-table-column prop="name" label="名称" width="180px" align="center" />
       <el-table-column label="分类" width="100px" align="center">
@@ -198,7 +206,7 @@ loadAll()
     <el-alert v-if="dialogError" :title="dialogError" type="error" show-icon class="message" style="margin-top: 12px" />
     <el-form label-position="top" style="margin-top: 12px;">
       <el-form-item label="借用数量" required>
-        <el-input-number v-model="qty" :min="1" :max="maxStock" />
+        <el-input-number v-model="qty" :min="1" :max="maxStock" :precision="0" :step-strictly="true"/>
       </el-form-item>
       <el-form-item label="备注">
         <el-input v-model="remark" type="textarea" :rows="2" maxlength="255" show-word-limit placeholder="选填" />
@@ -223,5 +231,14 @@ loadAll()
 
 :deep(.el-table__body .el-table__cell) {
   padding: 14px 0;
+}
+
+:deep(.el-table__body tr.row-disabled > td.el-table__cell) {
+  color: var(--el-text-color-placeholder);
+  background-color: var(--el-fill-color-lighter);
+}
+
+:deep(.el-table-body tr.row-disabled:hover > td.el-table__cell) {
+  background-color: var(--el-fill-color-light);
 }
 </style>
