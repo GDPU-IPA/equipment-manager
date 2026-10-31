@@ -42,8 +42,8 @@ const success = ref('')
 async function save() {
   if (saving.value) return
   error.value = success.value = ''
-  if (!oldPassword.value || newPassword.value.length < 6) {
-    error.value = '请输入旧密码，新密码必须不少于6位'
+  if (!oldPassword.value || newPassword.value.length < 8) {
+    error.value = '请输入旧密码，新密码必须不少于8位'
     return
   }
   if (newPassword.value !== confirmation.value) {
@@ -68,7 +68,7 @@ async function save() {
 
     <template #header><strong>账号信息</strong></template>
     <el-descriptions v-if="currentUser" :column="1" border>
-      <el-descriptions-item label="用户名">{{ currentUser.username }}</el-descriptions-item>
+      <el-descriptions-item label="学号/工号">{{ currentUser.username }}</el-descriptions-item>
       <el-descriptions-item label="角色">{{ currentUser.role === 'admin' ? '管理员' : '普通用户' }}</el-descriptions-item>
       <el-descriptions-item label="注册时间">{{ new Date(currentUser.created_at).toLocaleString('zh-CN')
         }}</el-descriptions-item>
@@ -79,7 +79,7 @@ async function save() {
     <el-alert v-if="profileError" :title="profileError" type="error" show-icon class="message" />
     <el-alert v-if="profileSuccess" :title="profileSuccess" type="success" show-icon class="message" />
     <el-form class="password-form" label-position="top" :disabled="profileSaving" @submit.prevent="saveAccount">
-      <el-form-item label="用户名" required><el-input v-model="account.username" maxlength="50"
+      <el-form-item label="学号/工号" required><el-input v-model="account.username" maxlength="50"
           autocomplete="username" /></el-form-item>
       <el-form-item label="姓名"><el-input v-model="account.name" maxlength="50" autocomplete="name" /></el-form-item>
       <el-form-item label="邮箱"><el-input v-model="account.email" maxlength="254" autocomplete="email" /></el-form-item>
