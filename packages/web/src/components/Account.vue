@@ -17,7 +17,7 @@ async function saveAccount() {
   if (profileSaving.value) return
   profileError.value = profileSuccess.value = ''
   if (!account.value.username.trim()) {
-    profileError.value = '请输入用户名'
+    profileError.value = '请输入学号/工号'
     return
   }
   if (account.value.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account.value.email.trim())) {
